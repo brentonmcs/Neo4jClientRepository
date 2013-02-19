@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neo4jClientRepository", "Neo4jClientRepository\Neo4jClientRepository.csproj", "{808CA46D-9FEB-424E-8114-DDDE2BE4530A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neo4jClientRepository.Tests", "Neo4jClientRepository.Tests\Neo4jClientRepository.Tests.csproj", "{0EEB5AF5-D394-4C26-BD8B-258A7423EEB0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{808CA46D-9FEB-424E-8114-DDDE2BE4530A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{808CA46D-9FEB-424E-8114-DDDE2BE4530A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{808CA46D-9FEB-424E-8114-DDDE2BE4530A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{808CA46D-9FEB-424E-8114-DDDE2BE4530A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EEB5AF5-D394-4C26-BD8B-258A7423EEB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EEB5AF5-D394-4C26-BD8B-258A7423EEB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EEB5AF5-D394-4C26-BD8B-258A7423EEB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EEB5AF5-D394-4C26-BD8B-258A7423EEB0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

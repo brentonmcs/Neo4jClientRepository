@@ -1,0 +1,1 @@
+C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository\obj\Debug\Neo4jClientRepository.csprojResolveAssemblyReference.cache
