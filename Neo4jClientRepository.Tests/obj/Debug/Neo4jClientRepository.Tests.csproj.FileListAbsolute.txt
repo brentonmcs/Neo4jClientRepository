@@ -1,1 +1,16 @@
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository.Tests\obj\Debug\Neo4jClientRepository.Tests.csprojResolveAssemblyReference.cache
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\obj\Debug\Neo4jClientRepository.Tests.csprojResolveAssemblyReference.cache
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClientRepository.Tests.dll.config
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClientRepository.Tests.dll
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClientRepository.Tests.pdb
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.dll
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClientRepository.dll
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Newtonsoft.Json.dll
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\nunit.framework.dll
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClientRepository.pdb
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.pdb
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Newtonsoft.Json.xml
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\nunit.framework.xml
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\obj\Debug\Neo4jClientRepository.Tests.dll
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\obj\Debug\Neo4jClientRepository.Tests.pdb
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\CacheController.dll

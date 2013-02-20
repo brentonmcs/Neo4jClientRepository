@@ -1,13 +1,9 @@
 ﻿using Neo4jClient;
 using Neo4jClientRepository.Tests.Domain;
 using Neo4jClientRepository.Tests.Relationships;
-using Neo4jClientRepository.Tests.Services;
 using SocialGraph.Neo4j.Neo4jUtils;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Neo4jClientRepository.Tests
 {
@@ -29,50 +25,29 @@ namespace Neo4jClientRepository.Tests
             // Based on http://wiki.neo4j.org/content/Image:Warehouse.png
 
             INeo4jRelationshipManager relationshipManager = new Neo4jRelationshipManager();
+            
 
-            var storageLocationService = new StorageLocationService(graph, relationshipManager);
+            var storageLocationService = new Neo4jService<StorageLocation>(graph, relationshipManager,null, null, null, "StoreageLocation");
 
-            // Can create nodes from POCOs
-            var frameStore = graph.Create(
-                new StorageLocation { Name = "Frame Store" });
-            var mainStore = graph.Create(
-                new StorageLocation { Name = "Main Store" });
+            var partsService = new Neo4JServiceLinked<Part, StorageLocation, ReferenceNode, StoredIn>(graph, relationshipManager, null, null, null, "Parts");
 
-            // Can create a node with outgoing relationships
-            var frame = graph.Create(
-                new Part { Name = "Frame" },
-                new StoredIn(frameStore));
+            var productService = new Neo4JServiceLinked<Product, StorageLocation, ReferenceNode, StoredIn>(graph, relationshipManager, null, null, null, "Products");
+            
+          
 
-            // Can create multiple outgoing relationships and relationships with payloads
-            graph.Create(
-                new Product { Name = "Trike", Weight = 2 },
-                new StoredIn(mainStore),
-                new Requires(frame, new Requires.Payload { Count = 1 }));
+            var frameStore = storageLocationService.UpSert(new StorageLocation {Name = "Frame Store"});
 
-            // Can create relationships in both directions
-            graph.Create(
-                new Part { Name = "Pedal" },
-                new StoredIn(frameStore),
-                new Requires(frame, new Requires.Payload { Count = 2 })
-                    { Direction = RelationshipDirection.Incoming });
+            var mainStore =  storageLocationService.UpSert(new StorageLocation {Name =  "Main Store"});
 
-            var wheel = graph.Create(
-                 new Part { Name = "Wheel" },
-                 new Requires(frame, new Requires.Payload { Count = 2 })
-                    { Direction = RelationshipDirection.Incoming });
+            var frame = partsService.UpSert(new Part {Name = "Frame"}, frameStore);
+                        
+            
+            productService.UpSert(new Product { Name =  "Trike", Weight =  2},mainStore);
+            
 
-            // Can create implicit incoming relationships
-            graph.Create(
-                new StorageLocation { Name = "Wheel Store" },
-                new StoredIn(wheel));
+          
 
-            // Can create relationships against the root node
-            graph.Create(
-                new StorageLocation {Name = "Auxillary Store"},
-                new StoredIn(wheel),
-                new OwnedBy(graph.RootNode));
-        
-    }
+        }
     }
 }
     

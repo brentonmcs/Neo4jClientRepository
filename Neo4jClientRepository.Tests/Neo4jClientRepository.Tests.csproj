@@ -58,19 +58,29 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ApiUsageIdeasReworked.cs" />
+    <Compile Include="Domain\Part.cs" />
+    <Compile Include="Domain\Product.cs" />
+    <Compile Include="Domain\StorageLocation.cs" />
+    <Compile Include="Domain\ReferenceNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Neo4jClientRepository\Neo4jClientRepository.csproj">
-      <Project>{808ca46d-9feb-424e-8114-ddde2be4530a}</Project>
-      <Name>Neo4jClientRepository</Name>
-    </ProjectReference>
+    <Compile Include="Relationships\OwnedBy.cs" />
+    <Compile Include="Relationships\StoredIn.cs" />
+    <Compile Include="Relationships\Requires.cs" />
+    <Compile Include="Relationships\PartRootNodeRelationship.cs" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Neo4jClientRepository\Neo4jClientRepository.csproj">
+      <Project>{808ca46d-9feb-424e-8114-ddde2be4530a}</Project>
+      <Name>Neo4jClientRepository</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

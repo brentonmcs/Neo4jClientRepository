@@ -1,20 +1,20 @@
-﻿using Neo4jClient;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SocialGraph.Neo4j.Neo4jUtils
+﻿
+using Neo4jClient;
+namespace Neo4jClientRepository
 {
+    // ReSharper disable InconsistentNaming
     public interface INeo4jService<T>
+    // ReSharper restore InconsistentNaming
     {
         Node<T> Get(string code);
-        Node<T> Get(int Id);
+        Node<T> Get(int id);
+        Node<T> Get(NodeReference<T> node);
+
         Node<T> GetCached(string code);
         Node<T> GetCached(int id);
         Node<T> UpSert(T item);
 
         string GetRootNodeKey();
+                
     }
 }

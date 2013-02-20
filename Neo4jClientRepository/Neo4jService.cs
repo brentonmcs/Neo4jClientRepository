@@ -1,34 +1,66 @@
-﻿using CacheController;
+﻿using System.Linq;
+using System.Linq.Expressions;
 using Neo4jClient;
 using Neo4jClient.Gremlin;
+using SocialGraph.Neo4j.Neo4jUtils;
 using System;
-using System.Linq;
 
-namespace SocialGraph.Neo4j.Neo4jUtils
+
+
+namespace Neo4jClientRepository
 {
-    public abstract class Neo4jService<T> : INeo4jService<T> where T : class , IDBSearchable<T>, new()
+
+    // ReSharper disable InconsistentNaming
+    public class Neo4jService<T> : INeo4jService<T> where T : class , IDBSearchable, new()
+    // ReSharper restore InconsistentNaming
     {
-        protected readonly IGraphClient graphClient;
-        protected readonly INeo4jRelationshipManager relationshipManager;
+        protected readonly IGraphClient GraphClient;
+        protected readonly INeo4jRelationshipManager RelationshipManager;
+        protected readonly ICachingService CachingService;
 
-        protected abstract string CacheName { get;  }
+        private readonly string _cacheName;
+        protected readonly T Source = new T();
 
-        private readonly T source = new T();
 
-        public Neo4jService(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager)
+        public Neo4jService(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, ICachingService cachingService, Func<T, IndexEntry> indexEntry, Action<T, T> updateFields, string cacheName)
         {
-            this.graphClient = graphClient;
-            this.relationshipManager = relationshipManager;
+            GraphClient = graphClient;
+            RelationshipManager = relationshipManager;
+            IndexEntry = indexEntry;
+            UpdateFields = updateFields;
+            _cacheName = cacheName;
+            CachingService = cachingService;
         }
 
         public Node<T> Get(string code)
         {
+            var result = GetQuery(x => x.ItemSearchCode() == code );
+            UpdateNodeInCache(CacheType.SearchCode, result);
+            return result;
+        }
+
+        public Node<T> Get(NodeReference<T> node)
+        {
             try
             {
-                return graphClient
-                      .RootNode
-                      .In<T>(GetRootNodeKey(), source.FilterQuery(code))
-                      .Single();
+                return node.StartCypher("node").Return<Node<T>>("node").Results.Single();
+            }
+            catch (InvalidOperationException)
+            {
+
+                throw new ObjectNotFoundException();
+            }
+
+        }
+
+        private Node<T> GetQuery(Expression<Func<T, bool>> filterQuery)
+        {
+            try
+            {
+                return GraphClient
+                            .RootNode
+                            .In(GetRootNodeKey(), filterQuery)
+                            .Single();                                
             }
             catch (InvalidOperationException)
             {
@@ -36,38 +68,49 @@ namespace SocialGraph.Neo4j.Neo4jUtils
             }
         }
 
-        public Node<T> Get(int Id)
+        protected string GetCacheKey(CacheType type, dynamic value)
         {
-            try
-            {
-                return graphClient
-                   .RootNode
-                   .In<T>(GetRootNodeKey(), x => x.Id == Id)
-                   .Single();
-            }
-            catch (InvalidOperationException)
-            {
-                throw new ObjectNotFoundException();
-            }
+            if (type == CacheType.Id)
+                return _cacheName + value;
+            return _cacheName + value;
+        }
+
+        public Node<T> Get(int id)
+        {
+            return GetQuery(x => x.Id == id);
         }
 
         public Node<T> GetCached(string code)
         {
-            var result =  CachingService.Cache(CacheName +  code, 1000, new Func<string, Node<T>>(Get), code) as Node<T>;
-            CachingService.UpdateCacheForKey(CacheName + result.Data.Id, 1000, result);
+            if (CachingService == null)
+                return Get(code);
+
+            var result = CachingService.Cache(GetCacheKey(CacheType.SearchCode, code), 1000, new Func<string, Node<T>>(Get), code) as Node<T>;
+            if (result == null)
+                return null;
+
+            UpdateNodeInCache(CacheType.Id, result);
             return result;
         }
 
-        public Node<T> GetCached(int  Id)
+        
+
+        public Node<T> GetCached(int id)
         {
-            var result = CachingService.Cache(CacheName + Id, 1000, new Func<string, Node<T>>(Get), Id) as Node<T>;
-            CachingService.UpdateCacheForKey(CacheName + result.Data.ItemSearchCode(), 1000, result);
+            if (CachingService == null)
+                return Get(id);
+
+            var result = CachingService.Cache(GetCacheKey(CacheType.Id, id), 1000, new Func<string, Node<T>>(Get), id) as Node<T>;
+            if (result == null)
+                return null;
+
+            UpdateNodeInCache(CacheType.SearchCode, result);
             return result;
         }
 
         public string GetRootNodeKey()
         {
-            return relationshipManager.GetTypeKey(typeof(T), typeof(RootNode));
+            return RelationshipManager.GetTypeKey(typeof(T), typeof(RootNode));
         }
 
         public Node<T> UpSert(T item)
@@ -78,30 +121,32 @@ namespace SocialGraph.Neo4j.Neo4jUtils
             {
                 return InsertNew(item);
             }
-            else
+            if (!existing.Data.Equals(item))
             {
-                if (!existing.Data.Equals(item))
-                {
-                    graphClient.Update(existing.Reference,
-                            u => GetItemUpdateFields(item, u),
-                            u => new[]
-                            {
-                             GetIndexEntry(u)
-                            });
-                }
-                return existing;
+                GraphClient.Update(existing.Reference,
+                                   u => UpdateFields(item, u),
+                                   u => new[] { IndexEntry(u) });
             }
+            return existing;
         }
 
-        protected abstract IndexEntry GetIndexEntry(T item);
+        protected Func<T, IndexEntry> IndexEntry;
+
+    
+
+        protected void UpdateNodeInCache(CacheType type, Node<T> result)
+        {
+            if (CachingService != null)
+                CachingService.UpdateCacheForKey(GetCacheKey(type, result.Data.Id), 10000, result);
+        }
 
         protected IRelationshipAllowingSourceNode<T> GetItemRelationship()
         {
-            return relationshipManager.GetRelationshipObjectSource<T>(typeof(T), typeof(RootNode), graphClient.RootNode) as IRelationshipAllowingSourceNode<T>;
+            return RelationshipManager.GetRelationshipObjectSource<T>(typeof(T), typeof(RootNode), GraphClient.RootNode);
         }
 
-        protected abstract void GetItemUpdateFields(T newItem, T oldItem);
-    
+        protected Action<T, T> UpdateFields;
+
         protected string GetSearchCode(T item)
         {
             return item.ItemSearchCode();
@@ -112,12 +157,11 @@ namespace SocialGraph.Neo4j.Neo4jUtils
             if (item.Id == 0)
                 item.Id = (new Random()).Next();
 
-            graphClient.Create<T>(item,
+            GraphClient.Create(item,
                                   new[] { GetItemRelationship() },
-                                  new[] { GetIndexEntry(item) });
+                                  new[] { IndexEntry == null ? null : IndexEntry(item) });
 
             var node = Get(GetSearchCode(item));
-            CachingService.UpdateCacheForKey(GetSearchCode(item), 10000, node);
             return node;
         }
     }
