@@ -4,112 +4,167 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SocialGraph.Neo4j.Neo4jUtils
+namespace Neo4jClientRepository
 {
+    // ReSharper disable InconsistentNaming
     public class Neo4jRelationshipManager : INeo4jRelationshipManager
+    // ReSharper restore InconsistentNaming
     {
-        private Dictionary<RelationshipContainer, Type> Relationships;
+        private Dictionary<RelationshipContainer, Type> _relationships;
 
         public Neo4jRelationshipManager()
         {
             RelationshipLocator();
         }
 
-        public T GetRelationshipObject<T>(Type Source, Type Target, NodeReference linkedObject) where T : class
+        public T GetRelationshipObject<T>(Type source, Type target, NodeReference linkedObject) where T : class
         {
-            var type = GetType(Source, Target);
-            var constructor = type.GetConstructor(new[] { typeof(NodeReference) });
-            var test = constructor.Invoke(new object[] { linkedObject }) as T;
-            return test;
+            return GetConstructor(source, target).Invoke(new object[] { linkedObject }) as T;
         }
 
-        public T GetRelationshipObject<T, TData>(Type Source, Type Target, NodeReference linkedObject, TData properties, Type Payload)
+        public T GetRelationshipObject<T, TData>(Type source, Type target, NodeReference linkedObject, TData properties, Type payLoad)
             where T : class
             where TData : class, new()
-        {
-            var constructor = GetType(Source, Target, Payload).GetConstructor(new[] { typeof(NodeReference), typeof(TData) });
-            var test = constructor.Invoke(new object[] { linkedObject, properties }) as T;
-            return test;
+        {            
+
+            var constructor = GetConstructor(source, target, new[] {typeof (NodeReference), typeof (TData)}, payLoad);
+
+            return constructor.Invoke(new object[] { linkedObject, properties }) as T;                        
         }
 
-        public IRelationshipAllowingParticipantNode<T> GetRelationshipObjectParticipant<T>(Type Source, Type Target, NodeReference linkedObject) where T : class
+        public IRelationshipAllowingParticipantNode<T> GetRelationshipObjectParticipant<T>(Type source, Type target, NodeReference linkedObject) where T : class
         {
-            var constructor = GetType(Source, Target).GetConstructor(new[] { typeof(NodeReference) });
-            var test = constructor.Invoke(new object[] { linkedObject }) as IRelationshipAllowingParticipantNode<T>;
-            return test;
+            return GetConstructor(source, target).Invoke(new object[] { linkedObject }) as IRelationshipAllowingParticipantNode<T>;
         }
 
-        public IRelationshipAllowingSourceNode<T> GetRelationshipObjectSource<T>(Type Source, Type Target, NodeReference linkedObject) where T : class
+        private ConstructorInfo GetConstructor(Type source, Type target, Type[] contstructorParams = null , Type payload = null)
         {
-            var constructor = GetType(Source, Target).GetConstructor(new[] { typeof(NodeReference) });
-            var test = constructor.Invoke(new object[] { linkedObject }) as IRelationshipAllowingSourceNode<T>;
-            return test;
+            if (contstructorParams == null)
+                contstructorParams = new[] { typeof(NodeReference) };
+            var constructor = GetType(source, target, payload).GetConstructor(contstructorParams);
+
+            if (constructor == null)
+                throw new RelationshipNotFoundException();
+            return constructor;
         }
 
-        public string GetTypeKey(Type Source, Type Target)
+        public IRelationshipAllowingSourceNode<T> GetRelationshipObjectSource<T>(Type source, Type target, NodeReference linkedObject) where T : class
         {
-            return GetTypeKey(Source, Target, null);
+            return GetConstructor(source, target).Invoke(new object[] { linkedObject }) as IRelationshipAllowingSourceNode<T>;
         }
 
-        public string GetTypeKey(Type Source, Type Target, Type PayLoad)
+        public string GetTypeKey(Type source, Type target)
         {
-            return GetType(Source, Target, PayLoad).GetFields().Where(x => x.Name == "TypeKey").Single().GetRawConstantValue().ToString();
+            return GetTypeKey(source, target, null);
         }
 
-        private Type GetGenericType(Type i)
+        public string GetTypeKey(Type source, Type target, Type payLoad)
         {
-            if (i.GetGenericArguments().Any())
-                return i.GetGenericArguments().First();
-            return null;
+            try
+            {
+                return GetType(source, target, payLoad)
+                       .GetFields()
+                       .Single(x => x.Name == "TypeKey")
+                       .GetRawConstantValue()
+                       .ToString();
+            }
+            catch (InvalidOperationException)
+            {
+                
+                throw new RelationshipTypeKeyNotFound();
+            }
+            
         }
 
-        private Type GetType(Type Source, Type Target, Type Payload = null)
+        private static Type GetGenericType(Type i)
         {
-            return Relationships
-                    .Where(x => x.Key.Source == Source)
-                    .Where(x => x.Key.Target == Target)
-                    .Where(x => x.Key.Payload == Payload)
-                    .Single()
-                    .Value;
+            return i.GetGenericArguments().Any() ? i.GetGenericArguments().First() : null;
+        }
+
+        private Type GetType(Type source, Type target, Type payload = null)
+        {
+            try
+            {
+                var  sourceTypeRealtionships =_relationships
+                .Where(x => x.Key.Source == source)
+                .Where(x => x.Key.Target == target);
+
+                if (payload != null)
+                    sourceTypeRealtionships= sourceTypeRealtionships.Where(x => x.Key.Payload == payload);
+
+                return sourceTypeRealtionships.Single().Value;
+            }
+            catch (InvalidOperationException)
+            {                
+                throw new RelationshipNotFoundException();
+            }
+            
         }
 
         private void RelationshipLocator()
         {
-            Relationships = new Dictionary<RelationshipContainer, Type>();
+            _relationships = new Dictionary<RelationshipContainer, Type>();
 
-            var types = Assembly.GetExecutingAssembly().GetTypes().Where(x => x.IsClass).Where(x => x.IsSubclassOf(typeof(Relationship)));
 
+            var types = AppDomain.CurrentDomain.GetAssemblies().ToList()
+                                 .SelectMany(s => s.GetTypes())
+                                 .Where(x => x.IsClass)
+                                 .Where(x => x.IsSubclassOf(typeof (Relationship)))
+                                 .Where(x => x != typeof (Relationship)); //We don't want the actual Relationship class
+
+            
             foreach (var t in types)
             {
+
+                Type source = null;
+                Type target = null;
+                Type payload = null;
+
                 var interfaces = t.GetInterfaces();
-                var container = new RelationshipContainer();
-                foreach (var i in interfaces)
-                {
-                    if (i.GetGenericTypeDefinition() == typeof(IRelationshipAllowingTargetNode<>))
-                        container.Target = GetGenericType(i);
 
-                    if (i.GetGenericTypeDefinition() == typeof(IRelationshipAllowingSourceNode<>))
-                        container.Source = GetGenericType(i);
-                }
+                AddFindDataTypesForSourceAndTarget(interfaces, ref source, ref  target);
 
-                if ((t.BaseType.GetGenericArguments().Any()) &&
-                    (t.BaseType.GetGenericTypeDefinition() == typeof(Relationship<>)))
-                    container.Payload = GetGenericType(t.BaseType);
+                if (t.BaseType != null && ((t.BaseType.GetGenericArguments().Any()) &&
+                                           (t.BaseType.GetGenericTypeDefinition() == typeof(Relationship<>))))
+                    payload = GetGenericType(t.BaseType);
 
-                if (container.Target == null || container.Source == null)
-                    throw new Exception("Container not setup correctly");
 
-                Relationships.Add(container, t);
+                if (target == null || source == null)
+                    continue;
+                
+                _relationships.Add(new RelationshipContainer(target, source, payload), t);
             }
+        }
+
+        private static void AddFindDataTypesForSourceAndTarget(IEnumerable<Type> interfaces, ref Type source, ref Type target)
+        {
+            foreach (var i in interfaces)
+            {
+                FindAttributeType(ref source, i, typeof(IRelationshipAllowingSourceNode<>));
+                FindAttributeType(ref target, i, typeof(IRelationshipAllowingTargetNode<>));
+            }
+        }
+
+        private static void FindAttributeType(ref Type returnType, Type i, Type attributeToFind)
+        {
+            if (i.GetGenericTypeDefinition() == attributeToFind)
+                returnType = GetGenericType(i);
         }
 
         private class RelationshipContainer
         {
-            public Type Payload { get; set; }
+            public RelationshipContainer(Type target, Type source, Type payload)
+            {
+                Payload = payload;
+                Source = source;
+                Target = target;
+            }
 
-            public Type Source { get; set; }
+            public Type Payload { get; private set; }
 
-            public Type Target { get; set; }
+            public Type Source { get; private set; }
+
+            public Type Target { get; private set; }
         }
     }
 }

@@ -12,9 +12,11 @@ namespace Neo4jClientRepository.Tests.Relationships
             : base(otherNode)
         { }
 
+        public const string TypeKey = "OWNED_BY";
+
         public override string RelationshipTypeKey
         {
-            get { return "OWNED_BY"; }
+            get { return TypeKey; }
         }
     }
 }

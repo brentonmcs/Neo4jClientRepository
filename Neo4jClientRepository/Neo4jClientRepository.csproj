@@ -61,6 +61,8 @@
     <Compile Include="Neo4jService.cs" />
     <Compile Include="ObjectNotFoundException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RelationshipNotFoundException.cs" />
+    <Compile Include="RelationshipTypeKeyNotFound.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

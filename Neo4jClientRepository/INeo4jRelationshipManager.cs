@@ -1,22 +1,24 @@
 ﻿using Neo4jClient;
 using System;
 
-namespace SocialGraph.Neo4j.Neo4jUtils
+namespace Neo4jClientRepository
 {
+    // ReSharper disable InconsistentNaming
     public interface INeo4jRelationshipManager
+    // ReSharper restore InconsistentNaming
     {
-        T GetRelationshipObject<T>(Type Source, Type Target, NodeReference linkedObject) where T : class;
+        T GetRelationshipObject<T>(Type source, Type target, NodeReference linkedObject) where T : class;
 
-        T GetRelationshipObject<T, TData>(Type Source, Type Target, NodeReference linkedObject, TData properties, Type PayLoad)
+        T GetRelationshipObject<T, TData>(Type source, Type target, NodeReference linkedObject, TData properties, Type payLoad)
             where T : class
             where TData : class, new();
 
-        IRelationshipAllowingParticipantNode<T> GetRelationshipObjectParticipant<T>(Type Source, Type Target, NodeReference linkedObject) where T : class;
+        IRelationshipAllowingParticipantNode<T> GetRelationshipObjectParticipant<T>(Type source, Type target, NodeReference linkedObject) where T : class;
 
-        IRelationshipAllowingSourceNode<T> GetRelationshipObjectSource<T>(Type Source, Type Target, NodeReference linkedObject) where T : class;
+        IRelationshipAllowingSourceNode<T> GetRelationshipObjectSource<T>(Type source, Type target, NodeReference linkedObject) where T : class;
 
-        string GetTypeKey(Type Source, Type Target);
+        string GetTypeKey(Type source, Type target);
 
-        string GetTypeKey(Type Source, Type Target, Type PayLoad);
+        string GetTypeKey(Type source, Type target, Type payLoad);
     }
 }
