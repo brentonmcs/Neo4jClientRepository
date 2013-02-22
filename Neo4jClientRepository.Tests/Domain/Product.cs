@@ -1,4 +1,6 @@
-﻿namespace Neo4jClientRepository.Tests.Domain
+﻿using Neo4jClientRepository.Interfaces;
+
+namespace Neo4jClientRepository.Tests.Domain
 {
     public class Product : IDBSearchable
     {

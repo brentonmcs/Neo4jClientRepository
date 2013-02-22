@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Neo4jClientRepository
+namespace Neo4jClientRepository.Caching
 {
     public interface ICachingService
     {

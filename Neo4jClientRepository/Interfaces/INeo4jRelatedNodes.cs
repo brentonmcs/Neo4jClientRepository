@@ -1,8 +1,7 @@
 ﻿using Neo4jClient;
-using SocialGraph.Neo4j.Neo4jUtils;
 using System.Collections.Generic;
 
-namespace Neo4jClientRepository
+namespace Neo4jClientRepository.Interfaces
 {
     // ReSharper disable InconsistentNaming
     public interface INeo4jRelatedNodes<TNode, TTargetNode>

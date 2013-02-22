@@ -1,10 +1,12 @@
 ﻿using System.Linq.Expressions;
-using CacheController;
 using Neo4jClient;
 using Neo4jClient.Gremlin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Neo4jClientRepository.Caching;
+using Neo4jClientRepository.Interfaces;
+using Neo4jClientRepository.RelationshipManager;
 using SocialGraph.Neo4j.Neo4jUtils;
 
 namespace Neo4jClientRepository
@@ -72,12 +74,12 @@ namespace Neo4jClientRepository
 
         public List<Node<TSourceNode>> GetCachedRelated<TSourceNode>(string relatedCode)
         {
-            return CachingService.Cache(GetCacheKey(relatedCode), 1000, new Func<string, List<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), relatedCode) as List<Node<TSourceNode>>;
+            return _cachingService.Cache(GetCacheKey(relatedCode), 1000, new Func<string, List<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), relatedCode) as List<Node<TSourceNode>>;
         }
 
         public List<Node<TSourceNode>> GetCachedRelated<TSourceNode>(int id)
         {
-            return CachingService.Cache(GetCacheKey(id), 1000, new Func<int, List<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), id) as List<Node<TSourceNode>>;
+            return _cachingService.Cache(GetCacheKey(id), 1000, new Func<int, List<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), id) as List<Node<TSourceNode>>;
         }
 
         public List<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(Node<TSourceNode> node)

@@ -2,6 +2,9 @@
 using System.Linq.Expressions;
 using Neo4jClient;
 using Neo4jClient.Gremlin;
+using Neo4jClientRepository.Caching;
+using Neo4jClientRepository.Interfaces;
+using Neo4jClientRepository.RelationshipManager;
 using SocialGraph.Neo4j.Neo4jUtils;
 using System;
 

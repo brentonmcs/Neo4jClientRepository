@@ -1,10 +1,10 @@
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository\obj\Debug\Neo4jClientRepository.csprojResolveAssemblyReference.cache
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\bin\Debug\Neo4jClientRepository.dll
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\bin\Debug\Neo4jClientRepository.pdb
-C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\bin\Debug\CacheController.dll
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\bin\Debug\Neo4jClient.dll
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\bin\Debug\Newtonsoft.Json.dll
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\bin\Debug\Neo4jClient.pdb
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\bin\Debug\Newtonsoft.Json.xml
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\obj\Debug\Neo4jClientRepository.dll
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\obj\Debug\Neo4jClientRepository.pdb
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\obj\Debug\Neo4jClientRepository.csprojResolveAssemblyReference.cache

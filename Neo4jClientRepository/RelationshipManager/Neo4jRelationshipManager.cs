@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Neo4jClientRepository
+namespace Neo4jClientRepository.RelationshipManager
 {
     // ReSharper disable InconsistentNaming
     public class Neo4jRelationshipManager : INeo4jRelationshipManager
@@ -85,9 +85,9 @@ namespace Neo4jClientRepository
         {
             try
             {
-                var  sourceTypeRealtionships =_relationships
-                .Where(x => x.Key.Source == source)
-                .Where(x => x.Key.Target == target);
+                var sourceTypeRealtionships = _relationships
+                    .Where(x => x.Key.Source.Contains(source))
+                    .Where(x => x.Key.Target.Contains(target));
 
                 if (payload != null)
                     sourceTypeRealtionships= sourceTypeRealtionships.Where(x => x.Key.Payload == payload);
@@ -116,44 +116,45 @@ namespace Neo4jClientRepository
             foreach (var t in types)
             {
 
-                Type source = null;
-                Type target = null;
+                var source = new List<Type>();
+                var target = new List<Type>();
                 Type payload = null;
 
                 var interfaces = t.GetInterfaces();
 
-                AddFindDataTypesForSourceAndTarget(interfaces, ref source, ref  target);
+                AddFindDataTypesForSourceAndTarget(interfaces,  source,  target);
 
                 if (t.BaseType != null && ((t.BaseType.GetGenericArguments().Any()) &&
                                            (t.BaseType.GetGenericTypeDefinition() == typeof(Relationship<>))))
                     payload = GetGenericType(t.BaseType);
 
 
-                if (target == null || source == null)
+                if (!target.Any() || !source.Any())
                     continue;
                 
                 _relationships.Add(new RelationshipContainer(target, source, payload), t);
             }
         }
 
-        private static void AddFindDataTypesForSourceAndTarget(IEnumerable<Type> interfaces, ref Type source, ref Type target)
+        private static void AddFindDataTypesForSourceAndTarget(IEnumerable<Type> interfaces, List<Type> source, List<Type> target)
         {
             foreach (var i in interfaces)
             {
-                FindAttributeType(ref source, i, typeof(IRelationshipAllowingSourceNode<>));
-                FindAttributeType(ref target, i, typeof(IRelationshipAllowingTargetNode<>));
+                FindAttributeType(source, i, typeof (IRelationshipAllowingSourceNode<>));
+                    
+                FindAttributeType(target, i, typeof(IRelationshipAllowingTargetNode<>));
             }
         }
 
-        private static void FindAttributeType(ref Type returnType, Type i, Type attributeToFind)
-        {
+        private static void FindAttributeType(List<Type> returnList, Type i, Type attributeToFind)
+        {            
             if (i.GetGenericTypeDefinition() == attributeToFind)
-                returnType = GetGenericType(i);
+                returnList.Add( GetGenericType(i));            
         }
 
         private class RelationshipContainer
         {
-            public RelationshipContainer(Type target, Type source, Type payload)
+            public RelationshipContainer(List<Type> target, List<Type> source, Type payload)
             {
                 Payload = payload;
                 Source = source;
@@ -162,9 +163,9 @@ namespace Neo4jClientRepository
 
             public Type Payload { get; private set; }
 
-            public Type Source { get; private set; }
+            public List<Type> Source { get; private set; }
 
-            public Type Target { get; private set; }
+            public List<Type> Target { get; private set; }
         }
     }
 }

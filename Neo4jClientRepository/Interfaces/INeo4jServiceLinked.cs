@@ -1,14 +1,11 @@
 ﻿using Neo4jClient;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Neo4jClientRepository;
 
-namespace SocialGraph.Neo4j.Neo4jUtils
+namespace Neo4jClientRepository.Interfaces
 {
+// ReSharper disable InconsistentNaming
     public interface INeo4jServiceLinked<TSourceNode, TLinkedNode> : INeo4jService<TSourceNode> where TSourceNode : class, IDBSearchable, new()
+// ReSharper restore InconsistentNaming
         where TLinkedNode : class, IDBSearchable, new()
     {
         void CreateReleationship(Node<TSourceNode> item, Node<TLinkedNode> linkedItem);

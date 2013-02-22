@@ -1,7 +1,7 @@
 ﻿using Neo4jClient;
 using System;
 
-namespace Neo4jClientRepository
+namespace Neo4jClientRepository.RelationshipManager
 {
     // ReSharper disable InconsistentNaming
     public interface INeo4jRelationshipManager
