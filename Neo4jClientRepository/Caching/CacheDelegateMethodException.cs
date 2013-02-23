@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Neo4jClientRepository.Caching
+namespace Neo4jClientRepository
 {
     [Serializable]
     public class CacheDelegateMethodException : Exception

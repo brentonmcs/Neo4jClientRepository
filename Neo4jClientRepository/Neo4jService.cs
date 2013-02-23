@@ -2,10 +2,7 @@
 using System.Linq.Expressions;
 using Neo4jClient;
 using Neo4jClient.Gremlin;
-using Neo4jClientRepository.Caching;
-using Neo4jClientRepository.Interfaces;
-using Neo4jClientRepository.RelationshipManager;
-using SocialGraph.Neo4j.Neo4jUtils;
+
 using System;
 
 
@@ -17,12 +14,12 @@ namespace Neo4jClientRepository
     public class Neo4jService<T> : INeo4jService<T> where T : class , IDBSearchable, new()
     // ReSharper restore InconsistentNaming
     {
-        protected readonly IGraphClient GraphClient;
-        protected readonly INeo4jRelationshipManager RelationshipManager;
-        protected readonly ICachingService CachingService;
+        protected IGraphClient GraphClient;
+        protected INeo4jRelationshipManager RelationshipManager;
+        protected ICachingService CachingService;
 
         private readonly string _cacheName;
-        protected readonly T Source = new T();
+        protected T Source = new T();
 
 
         public Neo4jService(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, ICachingService cachingService, Func<T, IndexEntry> indexEntry, Action<T, T> updateFields, string cacheName)

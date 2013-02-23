@@ -1,8 +1,6 @@
 ﻿using Neo4jClient;
-using Neo4jClientRepository.RelationshipManager;
 using Neo4jClientRepository.Tests.Domain;
 using Neo4jClientRepository.Tests.Relationships;
-using SocialGraph.Neo4j.Neo4jUtils;
 using System;
 
 

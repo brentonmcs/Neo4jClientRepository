@@ -12,3 +12,5 @@ C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\nunit.
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\obj\Debug\Neo4jClientRepository.Tests.csprojResolveAssemblyReference.cache
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\obj\Debug\Neo4jClientRepository.Tests.dll
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\obj\Debug\Neo4jClientRepository.Tests.pdb
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClientRepository.Tests.dll.CodeAnalysisLog.xml
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClientRepository.Tests.dll.lastcodeanalysissucceeded

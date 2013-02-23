@@ -1,7 +1,9 @@
 ﻿using Neo4jClient;
 using System;
 
-namespace Neo4jClientRepository.RelationshipManager
+// ReSharper disable CheckNamespace
+namespace Neo4jClientRepository
+// ReSharper restore CheckNamespace
 {
     // ReSharper disable InconsistentNaming
     public interface INeo4jRelationshipManager

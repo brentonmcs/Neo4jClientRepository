@@ -5,10 +5,6 @@ using Neo4jClient.Gremlin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Neo4jClientRepository.Caching;
-using Neo4jClientRepository.Interfaces;
-using Neo4jClientRepository.RelationshipManager;
-using SocialGraph.Neo4j.Neo4jUtils;
 
 namespace Neo4jClientRepository
 {

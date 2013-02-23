@@ -1,5 +1,4 @@
-﻿using Neo4jClientRepository.Interfaces;
-
+﻿
 namespace Neo4jClientRepository.Tests.Domain
 {
     public class StorageLocation : IDBSearchable

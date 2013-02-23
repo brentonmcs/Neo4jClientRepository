@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neo4jClientRepository.RelationshipManager;
 using Neo4jClientRepository.Tests.Relationships;
 using Neo4jClient;
 using Neo4jClientRepository.Tests.Domain;

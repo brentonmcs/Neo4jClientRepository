@@ -1,7 +1,9 @@
 ﻿using Neo4jClient;
 using System.Collections.Generic;
 
-namespace Neo4jClientRepository.Interfaces
+// ReSharper disable CheckNamespace
+namespace Neo4jClientRepository
+// ReSharper restore CheckNamespace
 {
 // ReSharper disable InconsistentNaming
     public interface INeo4jServiceLinked<TSourceNode, TLinkedNode> : INeo4jService<TSourceNode> where TSourceNode : class, IDBSearchable, new()

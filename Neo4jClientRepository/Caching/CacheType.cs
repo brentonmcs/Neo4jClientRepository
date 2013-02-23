@@ -1,4 +1,4 @@
-﻿namespace Neo4jClientRepository.Caching
+﻿namespace Neo4jClientRepository
 {
     public enum CacheType
     {
