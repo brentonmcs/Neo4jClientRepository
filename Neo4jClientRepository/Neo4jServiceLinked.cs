@@ -1,56 +1,58 @@
-﻿using CacheController;
+﻿
+using System.Linq.Expressions;
 using Neo4jClient;
 using Neo4jClient.Gremlin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SocialGraph.Neo4j.Neo4jUtils
+namespace Neo4jClientRepository
 {
-    public abstract class Neo4jServiceLinked<TSourceNode, TLinkedNode, TRootNodeRelationShip, TRelationship> : Neo4jService<TSourceNode>,
-                                                                                                               INeo4jServiceLinked<TSourceNode, TLinkedNode, TRootNodeRelationShip, TRelationship>
+    // ReSharper disable InconsistentNaming
+    public class Neo4JServiceLinked<TSourceNode, TLinkedNode, TRootNodeRelationShip, TRelationship> : Neo4jService<TSourceNode>, INeo4jServiceLinked<TSourceNode, TLinkedNode>
+    // ReSharper restore InconsistentNaming                                                                                                               
         where TRootNodeRelationShip : class,new()
         where TRelationship : Relationship, IRelationshipAllowingSourceNode<TSourceNode>
-        where TSourceNode : class, IDBSearchable<TSourceNode>, new()
-        where TLinkedNode : class, IDBSearchable<TLinkedNode>, new()
+        where TSourceNode : class, IDBSearchable, new()
+        where TLinkedNode : class, IDBSearchable, new()
     {
         protected NodeReference<TRootNodeRelationShip> RefNode;
-
-        private TSourceNode source;
-
-        public Neo4jServiceLinked(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager)
-            : base(graphClient, relationshipManager)
+        
+        public Neo4JServiceLinked(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, ICachingService cachingService, Func<TSourceNode, IndexEntry> indexEntry, Action<TSourceNode, TSourceNode> updateFields, string cacheName)
+            : base(graphClient, relationshipManager, cachingService,indexEntry, updateFields, cacheName)
         {
-            RefNode = GetOrCreateReferenceNode();
-            source = new TSourceNode();
+            RefNode = GetOrCreateReferenceNode();         
         }
 
         public void CreateReleationship(Node<TSourceNode> item, Node<TLinkedNode> linkedItem)
         {
             if (!FindRelationship(item, linkedItem))
-                graphClient.CreateRelationship(item.Reference, GetLinkedRelationship(linkedItem));
+                GraphClient.CreateRelationship(item.Reference, GetLinkedRelationship(linkedItem));
         }
+      
 
         public new Node<TSourceNode> Get(string code)
         {
-            return graphClient
+            return GraphClient
                 .RootNode
                 .In<TRootNodeRelationShip>(GetRefereanceNodeRelationship())
-                .Out<TSourceNode>(GetRootNodeTypeKey(), source.FilterQuery(code))
+                .Out<TSourceNode>(GetRootNodeTypeKey(), x=>x.ItemSearchCode() == code)
                 .SingleOrDefault();
         }
 
         public List<Node<TSourceNode>> GetAll()
         {
-            return graphClient
+            return GraphClient
                 .RootNode
                 .In<TRootNodeRelationShip>(GetRefereanceNodeRelationship())
                 .Out<TSourceNode>(GetRootNodeKey())
-                .ToList();                
+                .ToList();
         }
 
         public new Node<TSourceNode> GetCached(string code)
         {
+            if (CachingService == null)
+                return Get(code);
             return CachingService.Cache(code, 1000, new Func<string, Node<TSourceNode>>(Get), code) as Node<TSourceNode>;
         }
 
@@ -71,70 +73,77 @@ namespace SocialGraph.Neo4j.Neo4jUtils
 
         protected new IRelationshipAllowingParticipantNode<TSourceNode> GetItemRelationship()
         {
-            return relationshipManager.GetRelationshipObjectParticipant<TSourceNode>(typeof(TRootNodeRelationShip), typeof(TSourceNode), RefNode);
+            return RelationshipManager.GetRelationshipObjectParticipant<TSourceNode>(typeof(TRootNodeRelationShip), typeof(TSourceNode), RefNode);
         }
 
         protected TRelationship GetLinkedRelationship(Node<TLinkedNode> linkedItem)
         {
-            return relationshipManager.GetRelationshipObject<TRelationship>(typeof(TSourceNode), typeof(TLinkedNode), linkedItem.Reference);
+            return RelationshipManager.GetRelationshipObject<TRelationship>(typeof(TSourceNode), typeof(TLinkedNode), linkedItem.Reference);
         }
 
         protected NodeReference<TRootNodeRelationShip> GetOrCreateReferenceNode()
         {
-            var node = graphClient
+            var node = GraphClient
                 .RootNode
                 .In<TRootNodeRelationShip>(GetRefereanceNodeRelationship());
 
             if (node != null && node.Any())
                 return node.Single().Reference;
 
-            var refNode = graphClient.Create<TRootNodeRelationShip>(
-                new TRootNodeRelationShip()
-                , new[] { GetReferenceNodeRelationShip() as IRelationshipAllowingSourceNode<TRootNodeRelationShip> });
-            return refNode;
+            return GraphClient.Create( new  TRootNodeRelationShip(), new IRelationshipAllowingParticipantNode<TRootNodeRelationShip>[] {GetReferenceNodeRelationShip()});
         }
 
         protected IRelationshipAllowingSourceNode<TRootNodeRelationShip> GetReferenceNodeRelationShip()
         {
-            return relationshipManager.GetRelationshipObjectSource<TRootNodeRelationShip>(typeof(TRootNodeRelationShip), typeof(RootNode), graphClient.RootNode);
+            return RelationshipManager.GetRelationshipObjectSource<TRootNodeRelationShip>(typeof(TRootNodeRelationShip), typeof(RootNode), GraphClient.RootNode);
         }
 
         protected new Node<TSourceNode> InsertNew(TSourceNode item)
         {
-            graphClient.Create<TSourceNode>(item,
-                 new[] { GetItemRelationship() },
+            //TODO : needs to handle multiple Relationships with Payloads
 
-                                      new[] { GetIndexEntry(item) });
+            GraphClient.Create(item, 
+                new [] {GetItemRelationship(), GetItemRelationship()},                                
+                new[] { IndexEntry(item) });
 
-            var node = Get(item.ItemSearchCode());
-            CachingService.UpdateCacheForKey(item.ItemSearchCode(), 10000, node);
+            //TODO Search this by the nodes reference
+            var node = Get(item.ItemSearchCode());            
+            UpdateNodeInCache(CacheType.Id,  node);
+            UpdateNodeInCache(CacheType.SearchCode, node);
             return node;
         }
 
+        
         private bool FindRelationship(Node<TSourceNode> item, Node<TLinkedNode> linkedItem)
         {
-            return item.Out<TLinkedNode>(relationshipManager.GetTypeKey(typeof(TSourceNode), typeof(TLinkedNode)), linkedItem.Data.FilterQuery(linkedItem.Data)).Any();
+            //TODO need to test this
+            return item.Out(RelationshipManager.GetTypeKey(typeof(TSourceNode), typeof(TLinkedNode)), FilterQuery(linkedItem)).Any();
+            
+
+
+        }
+
+        private static Expression<Func<TSourceNode, bool>> FilterQuery(Node<TLinkedNode> linkedItem)
+        {
+            return x => x.Id == linkedItem.Data.Id;
         }
 
         private string GetRefereanceNodeRelationship()
         {
-            return relationshipManager.GetTypeKey(typeof(TRootNodeRelationShip), typeof(RootNode));
+            return RelationshipManager.GetTypeKey(typeof(TRootNodeRelationShip), typeof(RootNode));
         }
 
         private string GetRootNodeTypeKey()
         {
-            return relationshipManager.GetTypeKey(typeof(TRootNodeRelationShip), typeof(TSourceNode));
+            return RelationshipManager.GetTypeKey(typeof(TRootNodeRelationShip), typeof(TSourceNode));
         }
         private void UpdateExisting(TSourceNode item, Node<TSourceNode> existing)
         {
             if (!existing.Data.Equals(item))
             {
-                graphClient.Update(existing.Reference,
-                        u => GetItemUpdateFields(item, u),
-                        u => new[]
-                            {
-                             GetIndexEntry(u)
-                            });
+                GraphClient.Update(existing.Reference,
+                        u => UpdateFields(item, u),
+                        u => new[]{IndexEntry(u)});
             }
         }
     }

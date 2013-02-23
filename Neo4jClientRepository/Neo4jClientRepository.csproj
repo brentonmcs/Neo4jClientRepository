@@ -20,6 +20,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <CodeAnalysisRuleSet>ExtendedCorrectnessRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,24 +32,43 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Neo4jClient">
+      <HintPath>..\packages\Neo4jClient.1.0.0.500\lib\net40\Neo4jClient.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Runtime.Caching" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IDBSearchable.cs" />
-    <Compile Include="INeo4jRelatedNode.cs" />
-    <Compile Include="INeo4jRelationshipManager.cs" />
-    <Compile Include="INeo4jService.cs" />
-    <Compile Include="INeo4jServiceLinked.cs" />
-    <Compile Include="InvalidSourceNodeException.cs" />
+    <Compile Include="Caching\CacheDelegateMethodException.cs" />
+    <Compile Include="Caching\CacheType.cs" />
+    <Compile Include="Caching\CachingService.cs" />
+    <Compile Include="Caching\ICachingService.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Interfaces\IDBSearchable.cs" />
+    <Compile Include="Interfaces\INeo4jRelatedNodes.cs" />
+    <Compile Include="RelationshipManager\INeo4jRelationshipManager.cs" />
+    <Compile Include="Interfaces\INeo4jService.cs" />
+    <Compile Include="Interfaces\INeo4jServiceLinked.cs" />
+    <Compile Include="Exceptions\InvalidSourceNodeException.cs" />
     <Compile Include="Neo4jRelatedNodes.cs" />
-    <Compile Include="Neo4jRelationshipManager.cs" />
+    <Compile Include="RelationshipManager\Neo4jRelationshipManager.cs" />
+    <Compile Include="Neo4JServiceLinked.cs" />
     <Compile Include="Neo4jService.cs" />
-    <Compile Include="Neo4jServiceLinked.cs" />
-    <Compile Include="ObjectNotFoundException.cs" />
+    <Compile Include="Exceptions\ObjectNotFoundException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Exceptions\RelationshipNotFoundException.cs" />
+    <Compile Include="Exceptions\RelationshipTypeKeyNotFound.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

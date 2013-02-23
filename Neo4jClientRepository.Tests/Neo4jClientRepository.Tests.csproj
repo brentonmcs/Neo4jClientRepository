@@ -35,6 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Neo4jClient">
       <HintPath>..\packages\Neo4jClient.1.0.0.500\lib\net40\Neo4jClient.dll</HintPath>
     </Reference>
@@ -58,19 +59,29 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ApiUsageIdeasReworked.cs" />
+    <Compile Include="CacheTests.cs" />
+    <Compile Include="Domain\Part.cs" />
+    <Compile Include="Domain\Product.cs" />
+    <Compile Include="Domain\StorageLocation.cs" />
+    <Compile Include="Domain\ReferenceNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Relationships\OwnedBy.cs" />
+    <Compile Include="Relationships\ProductRootNodeRelationship.cs" />
+    <Compile Include="Relationships\StoredIn.cs" />
+    <Compile Include="Relationships\Requires.cs" />
+    <Compile Include="Relationships\PartRootNodeRelationship.cs" />
+    <Compile Include="RelationshipManagerTests.cs" />
+    <Compile Include="Relationships\StorePurchaseProduct.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\Neo4jClientRepository\Neo4jClientRepository.csproj">
       <Project>{808ca46d-9feb-424e-8114-ddde2be4530a}</Project>
       <Name>Neo4jClientRepository</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
