@@ -18,9 +18,11 @@ namespace Neo4jClientRepository.Tests.Relationships
             public int Count { get; set; }
         }
 
+        public const string TypeKey = "REQUIRES";
+
         public override string RelationshipTypeKey
         {
-            get { return "REQUIRES"; }
+            get { return TypeKey; }
         }
     }
 }

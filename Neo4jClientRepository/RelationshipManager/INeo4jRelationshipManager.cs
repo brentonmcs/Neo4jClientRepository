@@ -1,13 +1,9 @@
 ﻿using Neo4jClient;
 using System;
 
-// ReSharper disable CheckNamespace
 namespace Neo4jClientRepository
-// ReSharper restore CheckNamespace
 {
-    // ReSharper disable InconsistentNaming
     public interface INeo4jRelationshipManager
-    // ReSharper restore InconsistentNaming
     {
         T GetRelationshipObject<T>(Type source, Type target, NodeReference linkedObject) where T : class;
 
@@ -22,5 +18,13 @@ namespace Neo4jClientRepository
         string GetTypeKey(Type source, Type target);
 
         string GetTypeKey(Type source, Type target, Type payLoad);
+
+        Type GetSourceType(Type type);
+
+        Type GetTargetType(Type type);
+
+        Type GetRelationship(Type sourceNode);
+
+        string GetTypeKey(Type currentRelationshipType);
     }
 }
