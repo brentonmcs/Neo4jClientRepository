@@ -26,22 +26,19 @@ namespace Neo4jClientRepository.Tests
             INeo4jRelationshipManager relationshipManager = new Neo4jRelationshipManager();
             
 
-            var storageLocationService = new Neo4jService<StorageLocation>(graph, relationshipManager,null, null, null, "StoreageLocation");
-
-            var partsService = new Neo4JServiceLinked<Part, StorageLocation, ReferenceNode, StoredIn>(graph, relationshipManager, null, null, null, "Parts");
-
-            var productService = new Neo4JServiceLinked<Product, StorageLocation, ReferenceNode, StoredIn>(graph, relationshipManager, null, null, null, "Products");
+            var storageLocationService = new Neo4NodeRepository<OwnedBy>(graph, relationshipManager);
             
+            var partsAndProductService = new Neo4NodeRepository<StoredIn>(graph, relationshipManager);
+
           
 
             var frameStore = storageLocationService.UpSert(new StorageLocation {Name = "Frame Store"});
 
             var mainStore =  storageLocationService.UpSert(new StorageLocation {Name =  "Main Store"});
 
-            var frame = partsService.UpSert(new Part {Name = "Frame"}, frameStore);
-                        
-            
-            productService.UpSert(new Product { Name =  "Trike", Weight =  2},mainStore);
+            partsAndProductService.UpSert(new Part { Name = "Frame" }, frameStore);
+
+            partsAndProductService.UpSert(new Product { Name = "Trike", Weight = 2 }, mainStore);
             
 
           

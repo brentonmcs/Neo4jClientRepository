@@ -19,4 +19,22 @@ namespace Neo4jClientRepository.Tests.Relationships
             get { return TypeKey; }
         }
     }
+
+
+    public class RelatedProduct :
+    Relationship,
+    IRelationshipAllowingSourceNode<Product>,
+    IRelationshipAllowingTargetNode<Product>
+    {
+        public RelatedProduct(NodeReference otherNode)
+            : base(otherNode)
+        { }
+
+        public const string TypeKey = "OWNED_BY";
+
+        public override string RelationshipTypeKey
+        {
+            get { return TypeKey; }
+        }
+    }
 }

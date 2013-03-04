@@ -12,8 +12,6 @@ C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\nunit.
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\obj\Debug\Neo4jClientRepository.Tests.csprojResolveAssemblyReference.cache
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\obj\Debug\Neo4jClientRepository.Tests.dll
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\obj\Debug\Neo4jClientRepository.Tests.pdb
-C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClientRepository.Tests.dll.CodeAnalysisLog.xml
-C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClientRepository.Tests.dll.lastcodeanalysissucceeded
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClientRepository.Tests.dll
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClientRepository.Tests.pdb
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.dll
@@ -31,3 +29,8 @@ C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository.T
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository.Tests\bin\Debug\Microsoft.QualityTools.Testing.Fakes.dll
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.1.0.0.500.Fakes.dll
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.1.0.0.500.Fakes.xml
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\obj\Debug\Neo4jClientRepository.Tests.csprojFakesResolveAssemblyReference.cache
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.1.0.0.500.Fakes.fakesconfig
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Microsoft.QualityTools.Testing.Fakes.dll
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.1.0.0.500.Fakes.dll
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.1.0.0.500.Fakes.xml

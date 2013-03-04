@@ -19,3 +19,4 @@ C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository\b
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository\bin\Debug\Newtonsoft.Json.xml
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository\obj\Debug\Neo4jClientRepository.dll
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository\obj\Debug\Neo4jClientRepository.pdb
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\obj\Debug\Neo4jClientRepository.csprojResolveAssemblyReference.cache

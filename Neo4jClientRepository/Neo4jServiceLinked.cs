@@ -9,6 +9,7 @@ using System.Linq;
 namespace Neo4jClientRepository
 {
     // ReSharper disable InconsistentNaming
+    [Obsolete]
     public class Neo4JServiceLinked<TSourceNode, TLinkedNode, TRootNodeRelationShip, TRelationship> : Neo4jService<TSourceNode>, INeo4jServiceLinked<TSourceNode, TLinkedNode>
     // ReSharper restore InconsistentNaming                                                                                                               
         where TRootNodeRelationShip : class,new()
