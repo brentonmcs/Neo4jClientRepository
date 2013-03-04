@@ -23,9 +23,9 @@ namespace Neo4jClientRepository.Tests
         [TestMethod]
         public void CacheReturnsSameDateTime()
         {
-            var result = _cachingService.Cache("test", 10, new Func<DateTime>(TestFunction));
+            var result = _cachingService.Cache("test", 100, new Func<DateTime>(TestFunction));
 
-            var result2 = _cachingService.Cache("test", 10, new Func<DateTime>(TestFunction));
+            var result2 = _cachingService.Cache("test", 100, new Func<DateTime>(TestFunction));
 
             Assert.AreEqual(result, result2);
 

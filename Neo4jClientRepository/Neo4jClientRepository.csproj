@@ -54,6 +54,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Interfaces\IDBSearchable.cs" />
     <Compile Include="Interfaces\INeo4jRelatedNodes.cs" />
+    <Compile Include="Neo4NodeRepository.cs" />
     <Compile Include="RelationshipManager\INeo4jRelationshipManager.cs" />
     <Compile Include="Interfaces\INeo4jService.cs" />
     <Compile Include="Interfaces\INeo4jServiceLinked.cs" />

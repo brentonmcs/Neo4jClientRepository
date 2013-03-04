@@ -135,6 +135,29 @@ namespace Neo4jClientRepository.Tests
 
         }
 
+        [TestMethod]
+        public void TestGetSourceType()
+        {
+            var resut = _relationshipManager.GetSourceType(typeof(StorePurchaseProduct));
+            Assert.AreEqual(typeof(StorageLocation), resut);
+        }
+
+        [TestMethod]
+        public void TestGetTargetType()
+        {
+            var resut = _relationshipManager.GetTargetType(typeof(StorePurchaseProduct));
+            Assert.AreEqual(typeof(Product), resut);
+        }
+
+        [TestMethod]
+        public void FindLinkedRelationshipsBasedOnSource()
+        {
+            var result = _relationshipManager.GetRelationship(typeof(Product));
+
+            Assert.AreEqual(typeof(StorePurchaseProduct), result);
+
+
+        }
 
 
     }

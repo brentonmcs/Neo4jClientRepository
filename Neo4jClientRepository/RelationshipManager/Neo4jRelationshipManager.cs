@@ -64,11 +64,8 @@ namespace Neo4jClientRepository
         {
             try
             {
-                return GetType(source, target, payLoad)
-                       .GetFields()
-                       .Single(x => x.Name == "TypeKey")
-                       .GetRawConstantValue()
-                       .ToString();
+                return GetTypeKeyFromContainer(GetType(source, target, payLoad));
+                       
             }
             catch (InvalidOperationException)
             {
@@ -76,6 +73,16 @@ namespace Neo4jClientRepository
                 throw new RelationshipTypeKeyNotFound();
             }
             
+        }
+
+        private string GetTypeKeyFromContainer(Type Relationship)
+        {
+            return
+            Relationship
+            .GetFields()
+                       .Where(x => x.Name == "TypeKey").Single()
+                       .GetRawConstantValue()
+                       .ToString();
         }
 
         private static Type GetGenericType(Type i)
@@ -168,6 +175,46 @@ namespace Neo4jClientRepository
             public List<Type> Source { get; private set; }
 
             public List<Type> Target { get; private set; }
+        }
+
+
+
+
+        public Type GetSourceType(Type type)
+        {
+          
+            return GetRelationshipContainer(type).Source.First(); 
+
+        }
+
+        private RelationshipContainer GetRelationshipContainer(Type type)
+        {
+            return  _relationships.Where(x => x.Value == type).FirstOrDefault().Key;
+        }
+
+
+        public Type GetTargetType(Type type)
+        {
+            return GetRelationshipContainer(type).Target.First();
+        }
+
+
+        public Type GetRelationship(Type sourceNode)
+        {
+            var results = _relationships.Where(x => x.Key.Target.Contains(sourceNode));
+
+            var rootNodeRelationships = results.Where(x => x.Key.Source.Contains(typeof(RootNode)));
+
+            if (rootNodeRelationships.Any())
+                return rootNodeRelationships.First().Value;
+
+            return results.Any() ? results.First().Value : null;              
+        }
+
+
+        public string GetTypeKey(Type currentRelationshipType)
+        {
+            return GetTypeKeyFromContainer(currentRelationshipType);
         }
     }
 }
