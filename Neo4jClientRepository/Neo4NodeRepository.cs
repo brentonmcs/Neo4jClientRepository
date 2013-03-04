@@ -69,25 +69,26 @@ namespace Neo4jClientRepository
         
         public TResult GetByTree<TResult>(Expression<Func<TResult, bool>> Filter)
         {
-
-            var filter = Filter.Parameters.First();
-
-            if (filter.Name != "node")
-                throw new NotSupportedException("Lambda expression should use 'node' as the Left parameter (node => node.id == 1)");
-    //        filter.Body.
-            var result = 
+            CheckFilter<TResult>(Filter);
+   
+            return
                 _graphClient
                    .RootNode
                    .StartCypher("root")
                    .Match(GetMatch())
                    .Where(Filter)
-                   .Return<TResult>("node");
-
-            var query = result.Query.QueryText;
-            return
-                   result
+                   .Return<TResult>("node")
                    .Results
                    .Single();
+        }
+
+        private static void CheckFilter<TResult>(Expression<Func<TResult, bool>> Filter)
+        {
+            if (!Filter.Parameters.Any())
+                throw new NotSupportedException("No paraments found for Filter");
+
+            if (Filter.Parameters.First().Name != "node")
+                throw new NotSupportedException("Lambda expression should use 'node' as the Left parameter (node => node.id == 1)");
         }
 
         public string[] GetMatch()
@@ -119,23 +120,25 @@ namespace Neo4jClientRepository
         {
             var existing = GetNodeReferenceById<TNode>(GetItemId(item));
 
-            return (existing == null ? InsertNode(item, linkedItem) : UpdateNode<TNode>(item, existing.Reference));
+            if (existing == null)
+                   return    _graphClient.Create(item, new[] { GetReferenceToLinkedItem<TNode>(linkedItem) },   new [] { GetIndexEntry(item)});
+            else
+            {
+                _graphClient.Update<TNode>(existing.Reference, node => UpdateNode(item, node), x => new[] { GetIndexEntry(x) });
+                return existing.Reference;
+            }
         }
 
-        private NodeReference UpdateNode<TNode>(TNode item, NodeReference<TNode> existingItem)
+       
+        private TNode UpdateNode<TNode>(TNode item, TNode existingNode)
         {
-            //Todo - need to fix this.
-            _graphClient.Update<TNode>(existingItem, node => node = item);
-            return existingItem;
-        }
-
-        private NodeReference InsertNode<TNode>(TNode item, NodeReference linkedItem) where TNode : class, new()
-        {
-            var linkRef = new[] { GetReferenceToLinkedItem<TNode>(linkedItem) };
-            var indexEntry = GetIndexEntry(item);
-
-            return    _graphClient.Create(item, linkRef, indexEntry);
-
+            var newValues = GetItemsProperties(item).Select(x => new { value = x.GetValue(item, null), x.Name });
+            
+            foreach (var prop in GetItemsProperties(existingNode))
+            {
+                prop.SetValue(existingNode, newValues.Single(x => x.Name == prop.Name).value);
+            }
+            return existingNode;
         }
 
         private int GetItemId(object item)
@@ -152,7 +155,7 @@ namespace Neo4jClientRepository
         {
             return item.GetType().GetProperties();
         }
-        private IEnumerable<IndexEntry> GetIndexEntry(object item)
+        private IndexEntry GetIndexEntry(object item)
         {
             
             var indexEntry = new IndexEntry(item.GetType().Name);
@@ -162,7 +165,7 @@ namespace Neo4jClientRepository
                 indexEntry.Add(prop.Name, prop.GetValue(item,null));
               
             }
-            return new [] { indexEntry};
+            return indexEntry;
         }
 
         private IRelationshipAllowingParticipantNode<TNode> GetReferenceToLinkedItem<TNode>(NodeReference linkedItem)
@@ -170,8 +173,11 @@ namespace Neo4jClientRepository
         {
             return _relationshipManager.GetRelationshipObjectParticipant<TNode>(SourceType, TargetType, linkedItem);
         }
-      
 
+        public void DeleteNode(NodeReference node)
+        {
+            _graphClient.Delete(node, DeleteMode.NodeAndRelationships);
+        }
 
     }
 }

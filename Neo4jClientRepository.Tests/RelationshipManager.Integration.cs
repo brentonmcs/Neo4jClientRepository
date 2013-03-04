@@ -67,7 +67,7 @@ namespace Neo4jClientRepository.Tests
         }
 
         [TestCase]
-        public void InsertThenUpdateRecord()
+        public void InsertThenUpdateRecordAndDelete()
         {
             ownedByService.UpSert(new StorageLocation { Id = 2, Name = "Second Warehouse" }, graphClient.RootNode);
 
@@ -77,6 +77,13 @@ namespace Neo4jClientRepository.Tests
 
             Assert.NotNull(location);
             Assert.AreEqual("Second Warehouse 2", location.Name);
+
+            var refNode = ownedByService.GetNodeReferenceById<StorageLocation>(2);
+            ownedByService.DeleteNode(refNode.Reference);
+
+            location = ownedByService.GetById<StorageLocation>(2);
+            Assert.IsNull(location);
+            
         }
 
 
@@ -89,6 +96,14 @@ namespace Neo4jClientRepository.Tests
            Assert.AreEqual(0, location.Id);
   
         }
+
+        [TearDown]
+        public void Destroy()
+        {
+            var refNode = ownedByService.GetNodeReferenceById<StorageLocation>(0);
+            ownedByService.DeleteNode(refNode.Reference);
+        }
+
 
     }
 }
