@@ -9,6 +9,7 @@ using System.Linq;
 namespace Neo4jClientRepository
 {
     // ReSharper disable InconsistentNaming
+    [Obsolete]
     public class Neo4JServiceLinked<TSourceNode, TLinkedNode, TRootNodeRelationShip, TRelationship> : Neo4jService<TSourceNode>, INeo4jServiceLinked<TSourceNode, TLinkedNode>
     // ReSharper restore InconsistentNaming                                                                                                               
         where TRootNodeRelationShip : class,new()
@@ -18,7 +19,8 @@ namespace Neo4jClientRepository
     {
         protected NodeReference<TRootNodeRelationShip> RefNode;
         
-        public Neo4JServiceLinked(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, ICachingService cachingService, Func<TSourceNode, IndexEntry> indexEntry, Action<TSourceNode, TSourceNode> updateFields, string cacheName)
+        public Neo4JServiceLinked(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, 
+            ICachingService cachingService, Func<TSourceNode, IndexEntry> indexEntry, Action<TSourceNode, TSourceNode> updateFields, string cacheName)
             : base(graphClient, relationshipManager, cachingService,indexEntry, updateFields, cacheName)
         {
             RefNode = GetOrCreateReferenceNode();         

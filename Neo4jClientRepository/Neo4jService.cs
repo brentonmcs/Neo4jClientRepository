@@ -7,10 +7,12 @@ using System;
 
 
 
+
 namespace Neo4jClientRepository
 {
 
     // ReSharper disable InconsistentNaming
+    [Obsolete("Use Neo4NodeRepository instead")]
     public class Neo4jService<T> : INeo4jService<T> where T : class , IDBSearchable, new()
     // ReSharper restore InconsistentNaming
     {
@@ -24,6 +26,7 @@ namespace Neo4jClientRepository
 
         public Neo4jService(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, ICachingService cachingService, Func<T, IndexEntry> indexEntry, Action<T, T> updateFields, string cacheName)
         {
+            
             GraphClient = graphClient;
             RelationshipManager = relationshipManager;
             IndexEntry = indexEntry;

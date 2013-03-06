@@ -8,9 +8,9 @@ using System.Reflection;
 namespace Neo4jClientRepository
 // ReSharper restore CheckNamespace
 {
-    // ReSharper disable InconsistentNaming
+    
     public class Neo4jRelationshipManager : INeo4jRelationshipManager
-    // ReSharper restore InconsistentNaming
+    
     {
         private Dictionary<RelationshipContainer, Type> _relationships;
 
@@ -75,12 +75,11 @@ namespace Neo4jClientRepository
             
         }
 
-        private string GetTypeKeyFromContainer(Type Relationship)
+        private string GetTypeKeyFromContainer(Type relationship)
         {
             return
-            Relationship
-            .GetFields()
-                       .Where(x => x.Name == "TypeKey").Single()
+            relationship
+                .GetFields().Single(x => x.Name == "TypeKey")
                        .GetRawConstantValue()
                        .ToString();
         }
@@ -178,6 +177,50 @@ namespace Neo4jClientRepository
         }
 
 
+        
+        public string[] GetMatchStringToRootForSource<TRelationship>()
+        {
+            var result = new List<string>();
+
+            var currentRelationshipType = typeof(TRelationship);
+            var currentSource = GetSourceType(typeof(TRelationship));            
+            var currentTypeKey = GetTypeKey(currentRelationshipType);
+
+            var count = 0;
+            while (currentSource != typeof(RootNode))
+            {
+                TestForCyclicRelationship(currentRelationshipType, currentSource);
+                result.Add(count == 0 ? string.Format("node-[:{0}]-target{1}", currentTypeKey, count) : string.Format("target{1}-[:{0}]-target{1}", currentTypeKey, count));
+
+
+                currentRelationshipType = UpdateCurrentValues(currentRelationshipType, ref currentSource, ref currentTypeKey);
+                count++;
+            }
+            
+            result.Add(count == 0 ? string.Format("node-[:{0}]-root", currentTypeKey) : string.Format("target{1}-[:{0}]-root", currentTypeKey, count - 1));
+            return result.ToArray();
+        }
+
+        private Type UpdateCurrentValues(Type currentRelationshipType, ref Type currentSource,ref string currentTypeKey)
+        {
+            if (currentSource == null) throw new ArgumentNullException("currentSource");
+            if (currentTypeKey == null) throw new ArgumentNullException("currentTypeKey");
+            currentRelationshipType = GetRelationship(GetTargetType(currentRelationshipType));
+            currentSource = GetSourceType(currentRelationshipType);
+            currentTypeKey = GetTypeKey(currentRelationshipType);
+            return currentRelationshipType;
+        }
+
+        private void TestForCyclicRelationship(Type currentRelationshipType, Type currentSource)
+        {
+            var currentTargetType = GetTargetType(currentRelationshipType);
+            if (currentSource != currentTargetType) return;
+            var errorString =
+                string.Format(
+                    "Can not build Match cause for cyclic relationship - Source {0}, Target {1}, Relationship {2} ",
+                    currentSource, currentTargetType, currentRelationshipType);
+            throw new NotSupportedException(errorString);
+        }
 
 
         public Type GetSourceType(Type type)
@@ -189,7 +232,7 @@ namespace Neo4jClientRepository
 
         private RelationshipContainer GetRelationshipContainer(Type type)
         {
-            return  _relationships.Where(x => x.Value == type).FirstOrDefault().Key;
+            return  _relationships.FirstOrDefault(x => x.Value == type).Key;
         }
 
 
@@ -201,9 +244,9 @@ namespace Neo4jClientRepository
 
         public Type GetRelationship(Type sourceNode)
         {
-            var results = _relationships.Where(x => x.Key.Target.Contains(sourceNode));
+            var results = _relationships.Where(x => x.Key.Target.Contains(sourceNode)).ToList();
 
-            var rootNodeRelationships = results.Where(x => x.Key.Source.Contains(typeof(RootNode)));
+            var rootNodeRelationships = results.Where(x => x.Key.Source.Contains(typeof(RootNode))).ToList();
 
             if (rootNodeRelationships.Any())
                 return rootNodeRelationships.First().Value;

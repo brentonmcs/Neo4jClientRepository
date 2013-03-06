@@ -8,22 +8,24 @@ using System.Linq;
 
 namespace Neo4jClientRepository
 {
-    // ReSharper disable InconsistentNaming
+
     public class Neo4jRelatedNodes<TNode, TTargetNode, TRelationship> : INeo4jRelatedNodes<TNode, TTargetNode>
-    // ReSharper restore InconsistentNaming
-        where TNode : class,IDBSearchable, new()
-        where TTargetNode : class,IDBSearchable, new()
+
+        where TNode : class, IDBSearchable, new()
+        where TTargetNode : class, IDBSearchable, new()
         where TRelationship : Relationship, IRelationshipAllowingSourceNode<TNode>
     {
         protected bool AllowMultipleRelationships = false;
 
         private readonly IGraphClient _graphClient;
         private readonly INeo4jRelationshipManager _relationshipManager;
-        private readonly INeo4jService<TNode> _sourceDataSource;
-        private readonly INeo4jService<TTargetNode> _targetDataSource;
+        private readonly INeo4NodeRepository _sourceDataSource;
+        private readonly INeo4NodeRepository _targetDataSource;
         private readonly ICachingService _cachingService;
 
-        protected Neo4jRelatedNodes(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager,  INeo4jService<TNode> sourceDataSource, INeo4jService<TTargetNode> targetDataSource, ICachingService cachingService)
+        public Neo4jRelatedNodes(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager,
+                                 INeo4NodeRepository sourceDataSource, INeo4NodeRepository targetDataSource,
+                                 ICachingService cachingService)
         {
             _graphClient = graphClient;
             _relationshipManager = relationshipManager;
@@ -34,13 +36,14 @@ namespace Neo4jClientRepository
 
         public void AddRelatedRelationship(string sourceCode, string targetCode)
         {
-            AddRelatedRelationship(_sourceDataSource.GetCached(sourceCode), _targetDataSource.GetCached(targetCode));
+            AddRelatedRelationship(_sourceDataSource.GetByItemCode<TNode>(sourceCode),
+                                   _targetDataSource.GetByItemCode<TTargetNode>(targetCode));
         }
 
         public void AddRelatedRelationship(Node<TNode> source, Node<TTargetNode> target)
         {
             if (MultiplesCheck(source, target)) return;
-                
+
             _graphClient.CreateRelationship(source.Reference, GetRelatedRelationship(target));
 
             //TODO need to change this to update the cache not delete?
@@ -48,7 +51,8 @@ namespace Neo4jClientRepository
                 _cachingService.DeleteCache(GetCacheKey(source));
         }
 
-        public void AddRelatedRelationship<TData>(Node<TNode> source, Node<TTargetNode> target, TData properties) where TData : class, new()
+        public void AddRelatedRelationship<TData>(Node<TNode> source, Node<TTargetNode> target, TData properties)
+            where TData : class, new()
         {
             if (MultiplesCheck<TData>(source, target)) return;
 
@@ -58,28 +62,73 @@ namespace Neo4jClientRepository
                 _cachingService.DeleteCache(GetCacheKey(source));
         }
 
-        public void AddRelatedRelationship<TData>(string source, string target, TData properties) where TData : class, new()
+        public void AddRelatedRelationship<TData>(string source, string target, TData properties)
+            where TData : class, new()
         {
-            AddRelatedRelationship(_sourceDataSource.Get(source), _targetDataSource.Get(target), properties);
+            AddRelatedRelationship(_sourceDataSource.GetByItemCode<TNode>(source),
+                                   _targetDataSource.GetByItemCode<TTargetNode>(target), properties);
         }
 
-        public List<Node<TSourceNode>> GetCachedRelated<TSourceNode>(Node<TSourceNode> node)
-            where TSourceNode : IDBSearchable
+        public List<Node<TSourceNode>> GetCachedRelated<TSourceNode>(Node<TSourceNode> node) where TSourceNode : class, IDBSearchable, new()
         {
             return GetCachedRelated<TSourceNode>(node.Data.ItemSearchCode());
         }
 
-        public List<Node<TSourceNode>> GetCachedRelated<TSourceNode>(string relatedCode)
+        public List<Node<TSourceNode>> GetCachedRelated<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()
         {
             return _cachingService.Cache(GetCacheKey(relatedCode), 1000, new Func<string, List<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), relatedCode) as List<Node<TSourceNode>>;
         }
 
-        public List<Node<TSourceNode>> GetCachedRelated<TSourceNode>(int id)
+        public List<Node<TSourceNode>> GetCachedRelated<TSourceNode>(int id) where TSourceNode : class, IDBSearchable, new()                                    
         {
-            return _cachingService.Cache(GetCacheKey(id), 1000, new Func<int, List<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), id) as List<Node<TSourceNode>>;
+            return
+                _cachingService.Cache(GetCacheKey(id), 1000, new Func<int, List<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), id) as List<Node<TSourceNode>>;
         }
 
-        public List<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(Node<TSourceNode> node)
+        public List<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()                                    
+        {
+            return GetRelated<Node<TSourceNode>,TSourceNode>(GetNode<TSourceNode>(relatedCode));
+        }
+
+        public List<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(int id) where TSourceNode : class, IDBSearchable, new()
+        {            
+            return GetRelated<Node<TSourceNode>,TSourceNode>(GetNode<TSourceNode>(id));
+        }
+
+        private Node<TResult> GetNode<TResult>( object identifier) where TResult : class, IDBSearchable, new()
+        {
+            if (typeof(TResult) == typeof(TNode))
+            {
+                if (identifier is string)
+                    return _sourceDataSource.GetByItemCode<TResult>(identifier.ToString());
+                if (identifier is int)
+                    return _sourceDataSource.GetNodeReferenceById<TResult>((int) identifier);
+                throw new InvalidSourceNodeException();
+            }
+
+            if (identifier is string)
+                return _targetDataSource.GetByItemCode<TResult>(identifier.ToString());
+            if (identifier is int)
+                return _targetDataSource.GetNodeReferenceById<TResult>((int)identifier);
+            throw new InvalidSourceNodeException();
+
+        }
+
+
+        public List<TSourceNode> GetRelated<TSourceNode>(int id) 
+            where TSourceNode : class, IDBSearchable, new()
+        {
+            var node = GetNode<TSourceNode>(id);
+            return GetRelated<TSourceNode,TSourceNode>(node);
+        }
+
+        public List<TSourceNode> GetRelated<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()
+        {
+            return GetRelated<TSourceNode, TSourceNode>(GetNode<TSourceNode>(relatedCode));           
+        }
+
+        public List<TResult> GetRelated<TResult, TSourceNode>(Node<TSourceNode> node)            
+            where TSourceNode : class, new()
         {
             var matchText = string.Format("source-[:{0}]-targets", TypeKeyRelatingNodes());
 
@@ -87,77 +136,7 @@ namespace Neo4jClientRepository
                 node
                 .StartCypher("source")
                 .Match(matchText)
-                   .ReturnDistinct<Node<TSourceNode>>("targets")
-                   .Results
-                   .ToList();
-        }
-
-        public List<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(string relatedCode)
-        {
-            if (typeof(TSourceNode) == typeof(TNode))
-                // ReSharper disable SuspiciousTypeConversion.Global
-                return GetRelatedNodes(_sourceDataSource.Get(relatedCode)) as List<Node<TSourceNode>>;
-            // ReSharper restore SuspiciousTypeConversion.Global
-            if (typeof(TSourceNode) == typeof(TTargetNode))
-                // ReSharper disable SuspiciousTypeConversion.Global
-                return GetRelatedNodes(_targetDataSource.Get(relatedCode)) as List<Node<TSourceNode>>;
-            // ReSharper restore SuspiciousTypeConversion.Global
-
-            throw new InvalidSourceNodeException();
-        }
-
-        public List<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(int id)
-        {
-            if (typeof(TSourceNode) == typeof(TNode))
-                // ReSharper disable SuspiciousTypeConversion.Global
-                return GetRelatedNodes(_sourceDataSource.Get(id)) as List<Node<TSourceNode>>;
-            // ReSharper restore SuspiciousTypeConversion.Global
-            if (typeof(TSourceNode) == typeof(TTargetNode))
-                // ReSharper disable SuspiciousTypeConversion.Global
-                return GetRelatedNodes(_targetDataSource.Get(id)) as List<Node<TSourceNode>>;
-            // ReSharper restore SuspiciousTypeConversion.Global
-
-            throw new InvalidSourceNodeException();
-        }
-
-        public List<TSourceNode> GetRelated<TSourceNode>(int id)
-        {
-            if (typeof(TSourceNode) == typeof(TNode))
-                // ReSharper disable SuspiciousTypeConversion.Global
-                return GetRelated(_sourceDataSource.Get(id)) as List<TSourceNode>;
-            // ReSharper restore SuspiciousTypeConversion.Global
-            if (typeof(TSourceNode) == typeof(TTargetNode))
-                // ReSharper disable SuspiciousTypeConversion.Global
-                return GetRelated(_targetDataSource.Get(id)) as List<TSourceNode>;
-            // ReSharper restore SuspiciousTypeConversion.Global
-
-            throw new InvalidSourceNodeException();
-        }
-
-        public List<TSourceNode> GetRelated<TSourceNode>(string relatedCode)
-        {
-
-            if (typeof(TSourceNode) == typeof(TNode))
-                // ReSharper disable SuspiciousTypeConversion.Global
-                return GetRelated(_sourceDataSource.Get(relatedCode)) as List<TSourceNode>;
-            // ReSharper restore SuspiciousTypeConversion.Global
-            if (typeof(TSourceNode) == typeof(TTargetNode))
-                // ReSharper disable SuspiciousTypeConversion.Global
-                return GetRelated(_targetDataSource.Get(relatedCode)) as List<TSourceNode>;
-            // ReSharper restore SuspiciousTypeConversion.Global
-
-            throw new InvalidSourceNodeException();
-        }
-
-        public List<TSourceNode> GetRelated<TSourceNode>(Node<TSourceNode> node)
-        {
-            var matchText = string.Format("source-[:{0}]-targets", TypeKeyRelatingNodes());
-
-            return
-                node
-                .StartCypher("source")
-                .Match(matchText)
-                   .ReturnDistinct<TSourceNode>("targets")
+                   .ReturnDistinct<TResult>("targets")
                    .Results
                    .ToList();
         }
@@ -210,7 +189,9 @@ namespace Neo4jClientRepository
 
         private string GetSourceRootKey()
         {
-            return _sourceDataSource.GetRootNodeKey();
+            //return _relationshipManager.GetTypeKey()
+            return "";
+            //TODO Need to fix this...
         }
 
         private bool MultiplesCheck(Node<TNode> source, Node<TTargetNode> target)

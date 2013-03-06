@@ -4,10 +4,6 @@ using Neo4jClientRepository.Tests.Domain;
 using Neo4jClientRepository.Tests.Relationships;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Neo4jClientRepository.Tests
 {
@@ -53,8 +49,7 @@ namespace Neo4jClientRepository.Tests
             Assert.AreEqual(0, location.Id);
         }
 
-        [TestCase]
-
+        
 
 
         [TestCase]

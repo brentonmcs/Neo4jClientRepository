@@ -154,9 +154,38 @@ namespace Neo4jClientRepository.Tests
         {
             var result = _relationshipManager.GetRelationship(typeof(Product));
 
-            Assert.AreEqual(typeof(StorePurchaseProduct), result);
+            Assert.AreEqual(_relationshipManager.GetTargetType(result), typeof (Product));
+        }
 
 
+        [TestMethod]
+        public void GetMatchWhenSourceIsRoot()
+        {
+
+            var result = _relationshipManager.GetMatchStringToRootForSource<OwnedBy>();
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(1, result.Length);
+
+            Assert.AreEqual("node-[:OWNED_BY]-root", result[0]);
+        }
+
+        [TestMethod]
+        public void GetMatchWhenSourceIsNotRoot()
+        {
+            var result = _relationshipManager.GetMatchStringToRootForSource<Requires>();
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(2, result.Length);
+            Assert.AreEqual("node-[:REQUIRES]-target0", result[0]);
+            Assert.AreEqual("target0-[:HAS_RELATED_NODE]-root", result[1]);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(NotSupportedException))]
+        public void TestForExceptionIfTargetAndSourceMatch()
+        {
+            _relationshipManager.GetMatchStringToRootForSource<RelatedProduct>();            
         }
 
 
