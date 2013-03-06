@@ -7,11 +7,30 @@ using System.Reflection;
 
 namespace Neo4jClientRepository
 {
-    public class Neo4NodeRepository<TRelationship>
-        where TRelationship : Relationship
+    public interface INeo4NodeRepository
     {
-        readonly IGraphClient _graphClient;
-        readonly INeo4jRelationshipManager _relationshipManager;
+        TResult GetByIndex<TResult>(string key, object value, Type indexType = null) where TResult : class;
+
+        TResult GetById<TResult>(int id) where TResult : class;
+
+        
+        Node<TResult> GetByItemCode<TResult>(string itemCode) where TResult : class;
+        Node<TResult> GetNodeReferenceById<TResult>(int id) where TResult : class;
+
+        TResult GetByTree<TResult>(Expression<Func<TResult, bool>> filter);
+
+        NodeReference UpSert<TNode>(TNode item, NodeReference linkedItem = null)
+            where TNode : class, new();
+
+        void DeleteNode(NodeReference node);
+
+        
+    }
+
+    public class Neo4NodeRepository<TRelationship> : INeo4NodeRepository where TRelationship : Relationship
+    {
+        protected readonly IGraphClient GraphClient;
+        protected readonly INeo4jRelationshipManager RelationshipManager;
 
         private Type SourceType { get; set; }
         private Type TargetType { get; set; }
@@ -19,19 +38,19 @@ namespace Neo4jClientRepository
 
         public Neo4NodeRepository(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager)
         {
-            _graphClient = graphClient;
-            _relationshipManager = relationshipManager;
-            SourceType = _relationshipManager.GetSourceType(typeof(TRelationship));
-            TargetType = _relationshipManager.GetTargetType(typeof(TRelationship));
+            GraphClient = graphClient;
+            RelationshipManager = relationshipManager;
+            SourceType = RelationshipManager.GetSourceType(typeof(TRelationship));
+            TargetType = RelationshipManager.GetTargetType(typeof(TRelationship));
         }
-        
+                
         public TResult GetByIndex<TResult>(string key, object value, Type indexType = null) where TResult : class 
         {
-            if (!_graphClient.CheckIndexExists(GetIndexName<TResult>(indexType), IndexFor.Node))
+            if (!GraphClient.CheckIndexExists(GetIndexName<TResult>(indexType), IndexFor.Node))
                 return null;
 
             return 
-                 _graphClient
+                 GraphClient
                  .Cypher
                  .StartWithNodeIndexLookup("node", GetIndexName<TResult>(indexType), key, value)
                  .Return<TResult>("node")
@@ -54,10 +73,17 @@ namespace Neo4jClientRepository
             return GetByIndex<TResult>("Id", id);
         }
 
+        
         public Node<TResult> GetNodeReferenceById<TResult>(int id)
             where TResult : class 
         {
             return GetByIndex<Node<TResult>>("Id", id, typeof(TResult));
+        }
+        
+        public Node<TResult> GetByItemCode<TResult>(string itemCode) where TResult : class
+        {
+            //TODO : Need to bring the ItemCode() over here somehow...
+            return GetByIndex<Node<TResult>>("TODO" ,itemCode, typeof(TResult));
         }
         
         public TResult GetByTree<TResult>(Expression<Func<TResult, bool>> filter)
@@ -65,10 +91,10 @@ namespace Neo4jClientRepository
             CheckFilter(filter);
    
             return
-                _graphClient
+                GraphClient
                    .RootNode
                    .StartCypher("root")
-                   .Match(_relationshipManager.GetMatchStringToRootForSource<TRelationship>())
+                   .Match(RelationshipManager.GetMatchStringToRootForSource<TRelationship>())
                    .Where(filter)
                    .Return<TResult>("node")
                    .Results
@@ -92,8 +118,8 @@ namespace Neo4jClientRepository
             var existing = GetNodeReferenceById<TNode>(GetItemId(item));
 
             if (existing == null)
-                return _graphClient.Create(item, new[] { GetReferenceToLinkedItem<TNode>(GetLinkedReference(linkedItem)) }, new[] { GetIndexEntry(item) });
-            _graphClient.Update(existing.Reference, node => UpdateNode(item, node), x => new[] { GetIndexEntry(x) });
+                return GraphClient.Create(item, new[] { GetReferenceToLinkedItem<TNode>(GetLinkedReference(linkedItem)) }, new[] { GetIndexEntry(item) });
+            GraphClient.Update(existing.Reference, node => UpdateNode(item, node), x => new[] { GetIndexEntry(x) });
             return existing.Reference;
         }
 
@@ -101,7 +127,7 @@ namespace Neo4jClientRepository
         {
             var linkedReference = linkedItem;
             if (linkedItem == null)
-                linkedReference = _graphClient.RootNode;
+                linkedReference = GraphClient.RootNode;
             return linkedReference;
         }
 
@@ -127,6 +153,8 @@ namespace Neo4jClientRepository
             return (int)id.GetValue(item, null);         
         }
 
+
+       
         private IEnumerable<PropertyInfo> GetItemsProperties(object item)
         {
             return item.GetType().GetProperties();
@@ -147,13 +175,18 @@ namespace Neo4jClientRepository
         private IRelationshipAllowingParticipantNode<TNode> GetReferenceToLinkedItem<TNode>(NodeReference linkedItem)
             where TNode: class, new()
         {
-            return _relationshipManager.GetRelationshipObjectParticipant<TNode>(SourceType, TargetType, linkedItem);
+            return RelationshipManager.GetRelationshipObjectParticipant<TNode>(SourceType, TargetType, linkedItem);
         }
 
         public void DeleteNode(NodeReference node)
         {
-            _graphClient.Delete(node, DeleteMode.NodeAndRelationships);
+            GraphClient.Delete(node, DeleteMode.NodeAndRelationships);
         }
 
+
+
+        
+
+     
     }
 }

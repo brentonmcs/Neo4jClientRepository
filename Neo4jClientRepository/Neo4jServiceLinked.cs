@@ -19,7 +19,8 @@ namespace Neo4jClientRepository
     {
         protected NodeReference<TRootNodeRelationShip> RefNode;
         
-        public Neo4JServiceLinked(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, ICachingService cachingService, Func<TSourceNode, IndexEntry> indexEntry, Action<TSourceNode, TSourceNode> updateFields, string cacheName)
+        public Neo4JServiceLinked(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, 
+            ICachingService cachingService, Func<TSourceNode, IndexEntry> indexEntry, Action<TSourceNode, TSourceNode> updateFields, string cacheName)
             : base(graphClient, relationshipManager, cachingService,indexEntry, updateFields, cacheName)
         {
             RefNode = GetOrCreateReferenceNode();         
