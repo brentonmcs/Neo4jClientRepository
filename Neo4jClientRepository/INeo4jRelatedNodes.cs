@@ -28,5 +28,7 @@ namespace Neo4jClientRepository
 
 
         IEnumerable<RelationshipInstance<TData>> GetRelationships<TData>() where TData : class, new();
+
+        IEnumerable<TSourceNode> GetAllCachedRelated<TSourceNode>();
     }
 }

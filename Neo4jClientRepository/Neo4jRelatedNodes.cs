@@ -232,5 +232,12 @@ namespace Neo4jClientRepository
             if (payload == null) throw new ArgumentNullException("payload");
             return _relationshipManager.GetTypeKey(typeof(TNode), typeof(TTargetNode), payload);
         }
+
+
+        public IEnumerable<TSourceNode> GetAllCachedRelated<TSourceNode>()
+        {
+            var matchText = _relationshipManager.GetMatchStringToRootForSource(typeof (TSourceNode));
+            return _graphClient.RootNode.StartCypher("root").Match(matchText).ReturnDistinct<TSourceNode>("targets").Results;
+        }
     }
 }
