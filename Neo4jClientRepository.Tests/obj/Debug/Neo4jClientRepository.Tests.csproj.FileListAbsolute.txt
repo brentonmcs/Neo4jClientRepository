@@ -29,8 +29,7 @@ C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository.T
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository.Tests\bin\Debug\Microsoft.QualityTools.Testing.Fakes.dll
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.1.0.0.500.Fakes.dll
 C:\Users\Brenton McSweyn\DevSource\Neo4jClientRepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.1.0.0.500.Fakes.xml
-C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\obj\Debug\Neo4jClientRepository.Tests.csprojFakesResolveAssemblyReference.cache
-C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.1.0.0.500.Fakes.fakesconfig
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Microsoft.QualityTools.Testing.Fakes.dll
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.1.0.0.500.Fakes.dll
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\Neo4jClient.1.0.0.500.Fakes.xml
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository.Tests\bin\Debug\CacheController.dll

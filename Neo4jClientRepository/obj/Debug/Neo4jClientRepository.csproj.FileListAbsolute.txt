@@ -19,3 +19,4 @@ C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\bin\Debug\Neo4jClient.
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\bin\Debug\Newtonsoft.Json.xml
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\obj\Debug\Neo4jClientRepository.dll
 C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\obj\Debug\Neo4jClientRepository.pdb
+C:\Dev Source\neo4jclientrepository\Neo4jClientRepository\bin\Debug\CacheController.dll

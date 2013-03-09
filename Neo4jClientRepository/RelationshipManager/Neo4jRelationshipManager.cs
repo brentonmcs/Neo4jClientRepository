@@ -4,9 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-// ReSharper disable CheckNamespace
-namespace Neo4jClientRepository
-// ReSharper restore CheckNamespace
+namespace Neo4jClientRepository.RelationshipManager
+
 {
     
     public class Neo4jRelationshipManager : INeo4jRelationshipManager

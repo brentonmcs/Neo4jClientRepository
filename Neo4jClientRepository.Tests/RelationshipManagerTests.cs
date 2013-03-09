@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo4jClientRepository.RelationshipManager;
 using Neo4jClientRepository.Tests.Relationships;
 using Neo4jClient;
 using Neo4jClientRepository.Tests.Domain;
@@ -40,7 +41,7 @@ namespace Neo4jClientRepository.Tests
         }
 
         [TestMethod]
-        [ExpectedExceptionAttribute(typeof(RelationshipTypeKeyNotFound))]
+        [ExpectedExceptionAttribute(typeof(RelationshipTypeKeyNotFoundException))]
         public void RelationshipTypeKeyFieldNotSet()
         {
             //Setup
@@ -162,7 +163,7 @@ namespace Neo4jClientRepository.Tests
         public void GetMatchWhenSourceIsRoot()
         {
 
-            var result = _relationshipManager.GetMatchStringToRootForSource<OwnedBy>();
+            var result = _relationshipManager.GetMatchStringToRootForSource(typeof(OwnedBy));
 
             Assert.IsNotNull(result);
             Assert.AreEqual(1, result.Length);
@@ -173,7 +174,7 @@ namespace Neo4jClientRepository.Tests
         [TestMethod]
         public void GetMatchWhenSourceIsNotRoot()
         {
-            var result = _relationshipManager.GetMatchStringToRootForSource<Requires>();
+            var result = _relationshipManager.GetMatchStringToRootForSource(typeof(OwnedBy));
 
             Assert.IsNotNull(result);
             Assert.AreEqual(2, result.Length);
@@ -185,7 +186,7 @@ namespace Neo4jClientRepository.Tests
         [ExpectedException(typeof(NotSupportedException))]
         public void TestForExceptionIfTargetAndSourceMatch()
         {
-            _relationshipManager.GetMatchStringToRootForSource<RelatedProduct>();            
+            _relationshipManager.GetMatchStringToRootForSource(typeof(RelatedProduct));            
         }
 
 
