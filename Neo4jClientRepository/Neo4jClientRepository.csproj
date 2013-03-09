@@ -23,7 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>true</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>ExtendedCorrectnessRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -54,21 +54,18 @@
     <Compile Include="Caching\CachingService.cs" />
     <Compile Include="Caching\ICachingService.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Interfaces\IDBSearchable.cs" />
-    <Compile Include="Interfaces\INeo4jRelatedNodes.cs" />
+    <Compile Include="INeo4jRelatedNodes.cs" />
+    <Compile Include="INeo4NodeRepository.cs" />
+    <Compile Include="IDBSearchable.cs" />
     <Compile Include="Neo4NodeRepository.cs" />
     <Compile Include="RelationshipManager\INeo4jRelationshipManager.cs" />
-    <Compile Include="Interfaces\INeo4jService.cs" />
-    <Compile Include="Interfaces\INeo4jServiceLinked.cs" />
-    <Compile Include="Exceptions\InvalidSourceNodeException.cs" />
+    <Compile Include="InvalidSourceNodeException.cs" />
     <Compile Include="Neo4jRelatedNodes.cs" />
     <Compile Include="RelationshipManager\Neo4jRelationshipManager.cs" />
-    <Compile Include="Neo4JServiceLinked.cs" />
-    <Compile Include="Neo4jService.cs" />
-    <Compile Include="Exceptions\ObjectNotFoundException.cs" />
+    <Compile Include="ObjectNotFoundException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Exceptions\RelationshipNotFoundException.cs" />
-    <Compile Include="Exceptions\RelationshipTypeKeyNotFound.cs" />
+    <Compile Include="RelationshipNotFoundException.cs" />
+    <Compile Include="RelationshipTypeKeyNotFoundException.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

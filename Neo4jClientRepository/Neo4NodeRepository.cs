@@ -7,44 +7,31 @@ using System.Reflection;
 
 namespace Neo4jClientRepository
 {
-    public interface INeo4NodeRepository
-    {
-        TResult GetByIndex<TResult>(string key, object value, Type indexType = null) where TResult : class;
-
-        TResult GetById<TResult>(int id) where TResult : class;
-
-        
-        Node<TResult> GetByItemCode<TResult>(string itemCode) where TResult : class;
-        Node<TResult> GetNodeReferenceById<TResult>(int id) where TResult : class;
-
-        TResult GetByTree<TResult>(Expression<Func<TResult, bool>> filter);
-
-        NodeReference UpSert<TNode>(TNode item, NodeReference linkedItem = null)
-            where TNode : class, new();
-
-        void DeleteNode(NodeReference node);
-
-        
-    }
-
     public class Neo4NodeRepository<TRelationship> : INeo4NodeRepository where TRelationship : Relationship
     {
-        protected readonly IGraphClient GraphClient;
-        protected readonly INeo4jRelationshipManager RelationshipManager;
+        private readonly IGraphClient GraphClient;
+        private readonly INeo4jRelationshipManager RelationshipManager;
 
         private Type SourceType { get; set; }
         private Type TargetType { get; set; }
-        
+        protected Type Relationship { get; set; }
 
         public Neo4NodeRepository(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager)
         {
+            if (graphClient == null) throw new ArgumentNullException("graphClient");
+            
+            if (relationshipManager == null) throw new ArgumentNullException("relationshipManager");
+
             GraphClient = graphClient;
             RelationshipManager = relationshipManager;
             SourceType = RelationshipManager.GetSourceType(typeof(TRelationship));
             TargetType = RelationshipManager.GetTargetType(typeof(TRelationship));
+            
         }
-                
-        public TResult GetByIndex<TResult>(string key, object value, Type indexType = null) where TResult : class 
+
+        
+
+        public TResult GetByIndex<TResult>(string key, object value, Type indexType) where TResult : class 
         {
             if (!GraphClient.CheckIndexExists(GetIndexName<TResult>(indexType), IndexFor.Node))
                 return null;
@@ -70,7 +57,7 @@ namespace Neo4jClientRepository
         public TResult GetById<TResult>(int id)
             where TResult : class 
         {
-            return GetByIndex<TResult>("Id", id);
+            return GetByIndex<TResult>("Id", id,null);
         }
 
         
@@ -94,7 +81,7 @@ namespace Neo4jClientRepository
                 GraphClient
                    .RootNode
                    .StartCypher("root")
-                   .Match(RelationshipManager.GetMatchStringToRootForSource<TRelationship>())
+                   .Match(RelationshipManager.GetMatchStringToRootForSource(Relationship))
                    .Where(filter)
                    .Return<TResult>("node")
                    .Results
@@ -105,14 +92,14 @@ namespace Neo4jClientRepository
         {
             if (filter == null) throw new ArgumentNullException("filter");
             if (!filter.Parameters.Any())
-                throw new NotSupportedException("No paraments found for Filter");
+                throw new NotSupportedException("No Parameters found for Filter");
 
             if (filter.Parameters.First().Name != "node")
                 throw new NotSupportedException("Lambda expression should use 'node' as the Left parameter (node => node.id == 1)");
         }
 
 
-        public NodeReference UpSert<TNode>(TNode item, NodeReference linkedItem = null)
+        public NodeReference UpdateOrInsert<TNode>(TNode item, NodeReference linkedItem)
             where TNode : class, new()
         {            
             var existing = GetNodeReferenceById<TNode>(GetItemId(item));
@@ -132,7 +119,7 @@ namespace Neo4jClientRepository
         }
 
 
-        private TNode UpdateNode<TNode>(TNode item, TNode existingNode)
+        private static TNode UpdateNode<TNode>(TNode item, TNode existingNode)
         {
             var newValues = GetItemsProperties(item).Select(x => new { value = x.GetValue(item, null), x.Name }).ToList();
             
@@ -143,7 +130,7 @@ namespace Neo4jClientRepository
             return existingNode;
         }
 
-        private int GetItemId(object item)
+        private static int GetItemId(object item)
         {
             var id = GetItemsProperties(item).SingleOrDefault(x => x.Name == "Id");
 
@@ -155,11 +142,12 @@ namespace Neo4jClientRepository
 
 
        
-        private IEnumerable<PropertyInfo> GetItemsProperties(object item)
+        private static IEnumerable<PropertyInfo> GetItemsProperties(object item)
         {
             return item.GetType().GetProperties();
         }
-        private IndexEntry GetIndexEntry(object item)
+
+        private static IndexEntry GetIndexEntry(object item)
         {
             
             var indexEntry = new IndexEntry(item.GetType().Name);

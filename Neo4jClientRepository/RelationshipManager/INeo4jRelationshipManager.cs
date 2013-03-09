@@ -7,7 +7,7 @@ namespace Neo4jClientRepository
     {
         T GetRelationshipObject<T>(Type source, Type target, NodeReference linkedObject) where T : class;
 
-        T GetRelationshipObject<T, TData>(Type source, Type target, NodeReference linkedObject, TData properties, Type payLoad)
+        T GetRelationshipObject<T, TData>(Type source, Type target, NodeReference linkedObject, TData properties, Type payload)
             where T : class
             where TData : class, new();
 
@@ -17,7 +17,7 @@ namespace Neo4jClientRepository
 
         string GetTypeKey(Type source, Type target);
 
-        string GetTypeKey(Type source, Type target, Type payLoad);
+        string GetTypeKey(Type source, Type target, Type payload);
 
         Type GetSourceType(Type type);
 
@@ -27,6 +27,6 @@ namespace Neo4jClientRepository
 
         string GetTypeKey(Type currentRelationshipType);
 
-        string[] GetMatchStringToRootForSource<TRelationship>();
+        string[] GetMatchStringToRootForSource<TRelationship>(TRelationship relationship) where TRelationship : Type;
     }
 }

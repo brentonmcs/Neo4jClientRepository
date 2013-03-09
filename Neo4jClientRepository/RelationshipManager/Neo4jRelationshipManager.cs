@@ -24,12 +24,12 @@ namespace Neo4jClientRepository
             return GetConstructor(source, target).Invoke(new object[] { linkedObject }) as T;
         }
 
-        public T GetRelationshipObject<T, TData>(Type source, Type target, NodeReference linkedObject, TData properties, Type payLoad)
+        public T GetRelationshipObject<T, TData>(Type source, Type target, NodeReference linkedObject, TData properties, Type payload)
             where T : class
             where TData : class, new()
         {            
 
-            var constructor = GetConstructor(source, target, new[] {typeof (NodeReference), typeof (TData)}, payLoad);
+            var constructor = GetConstructor(source, target, new[] {typeof (NodeReference), typeof (TData)}, payload);
 
             return constructor.Invoke(new object[] { linkedObject, properties }) as T;                        
         }
@@ -60,28 +60,24 @@ namespace Neo4jClientRepository
             return GetTypeKey(source, target, null);
         }
 
-        public string GetTypeKey(Type source, Type target, Type payLoad)
+        public string GetTypeKey(Type source, Type target, Type payload)
         {
             try
             {
-                return GetTypeKeyFromContainer(GetType(source, target, payLoad));
+                return GetTypeKeyFromContainer(GetType(source, target, payload));
                        
             }
             catch (InvalidOperationException)
             {
                 
-                throw new RelationshipTypeKeyNotFound();
+                throw new RelationshipTypeKeyNotFoundException();
             }
             
         }
 
-        private string GetTypeKeyFromContainer(Type relationship)
+        private static string GetTypeKeyFromContainer(Type relationship)
         {
-            return
-            relationship
-                .GetFields().Single(x => x.Name == "TypeKey")
-                       .GetRawConstantValue()
-                       .ToString();
+            return relationship.GetFields().Single(x => x.Name == "TypeKey").GetRawConstantValue().ToString();
         }
 
         private static Type GetGenericType(Type i)
@@ -89,7 +85,7 @@ namespace Neo4jClientRepository
             return i.GetGenericArguments().Any() ? i.GetGenericArguments().First() : null;
         }
 
-        private Type GetType(Type source, Type target, Type payload = null)
+        private Type GetType(Type source, Type target, Type payload)
         {
             try
             {
@@ -178,12 +174,12 @@ namespace Neo4jClientRepository
 
 
         
-        public string[] GetMatchStringToRootForSource<TRelationship>()
+        public string[] GetMatchStringToRootForSource<TRelationship>(TRelationship relationship) where TRelationship : Type
         {
             var result = new List<string>();
 
-            var currentRelationshipType = typeof(TRelationship);
-            var currentSource = GetSourceType(typeof(TRelationship));            
+            Type currentRelationshipType = relationship;
+            var currentSource = GetSourceType(currentRelationshipType);            
             var currentTypeKey = GetTypeKey(currentRelationshipType);
 
             var count = 0;
