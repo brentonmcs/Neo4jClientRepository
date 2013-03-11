@@ -1,4 +1,5 @@
 ﻿using Neo4jClient;
+using Neo4jClientRepository.RelationshipManager;
 using Neo4jClientRepository.Tests.Domain;
 using Neo4jClientRepository.Tests.Relationships;
 using System;
@@ -28,13 +29,13 @@ namespace Neo4jClientRepository.Tests
 
 
 
-            var frameStore = storageLocationService.UpSert(new StorageLocation {Name = "Frame Store"});
+            var frameStore = storageLocationService.UpdateOrInsert(new StorageLocation {Name = "Frame Store"},null);
 
-            var mainStore = storageLocationService.UpSert(new StorageLocation {Name = "Main Store"});
+            var mainStore = storageLocationService.UpdateOrInsert(new StorageLocation { Name = "Main Store" }, null);
 
-            var frame = partsAndProductService.UpSert(new Part {Name = "Frame"}, frameStore);
+            var frame = partsAndProductService.UpdateOrInsert(new Part { Name = "Frame" }, frameStore);
 
-            partsAndProductService.UpSert(new Product {Name = "Trike", Weight = 2}, mainStore);
+            partsAndProductService.UpdateOrInsert(new Product { Name = "Trike", Weight = 2 }, mainStore);
 
 
         }

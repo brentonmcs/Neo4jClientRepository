@@ -4,7 +4,8 @@ using Neo4jClient.Gremlin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using CacheController;
+using Neo4jClientRepository.RelationshipManager;
 
 namespace Neo4jClientRepository
 {
@@ -15,7 +16,7 @@ namespace Neo4jClientRepository
         where TTargetNode : class, IDBSearchable, new()
         where TRelationship : Relationship, IRelationshipAllowingSourceNode<TNode>
     {
-        protected bool AllowMultipleRelationships = false;
+        protected bool AllowMultipleRelationships { get; set; }
 
         private readonly IGraphClient _graphClient;
         private readonly INeo4jRelationshipManager _relationshipManager;
@@ -32,6 +33,7 @@ namespace Neo4jClientRepository
             _sourceDataSource = sourceDataSource;
             _targetDataSource = targetDataSource;
             _cachingService = cachingService;
+            AllowMultipleRelationships = false;
         }
 
         public void AddRelatedRelationship(string sourceCode, string targetCode)
@@ -42,6 +44,9 @@ namespace Neo4jClientRepository
 
         public void AddRelatedRelationship(Node<TNode> source, Node<TTargetNode> target)
         {
+            if (source == null) throw new ArgumentNullException("source");
+            if (target == null) throw new ArgumentNullException("target");
+
             if (MultiplesCheck(source, target)) return;
 
             _graphClient.CreateRelationship(source.Reference, GetRelatedRelationship(target));
@@ -51,9 +56,10 @@ namespace Neo4jClientRepository
                 _cachingService.DeleteCache(GetCacheKey(source));
         }
 
-        public void AddRelatedRelationship<TData>(Node<TNode> source, Node<TTargetNode> target, TData properties)
-            where TData : class, new()
+        public void AddRelatedRelationship<TData>(Node<TNode> source, Node<TTargetNode> target, TData properties) where TData : class, new()
         {
+            if (source == null) throw new ArgumentNullException("source");
+            if (target == null) throw new ArgumentNullException("target");
             if (MultiplesCheck<TData>(source, target)) return;
 
             _graphClient.CreateRelationship(source.Reference, GetRelatedRelationship(target, properties));
@@ -69,79 +75,84 @@ namespace Neo4jClientRepository
                                    _targetDataSource.GetByItemCode<TTargetNode>(target), properties);
         }
 
-        public List<Node<TSourceNode>> GetCachedRelated<TSourceNode>(Node<TSourceNode> node) where TSourceNode : class, IDBSearchable, new()
+        public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(Node<TSourceNode> node) where TSourceNode : class, IDBSearchable, new()
         {
+            if (node == null) throw new ArgumentNullException("node");
+            
             return GetCachedRelated<TSourceNode>(node.Data.ItemSearchCode());
         }
 
-        public List<Node<TSourceNode>> GetCachedRelated<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()
+        public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()
         {
-            return _cachingService.Cache(GetCacheKey(relatedCode), 1000, new Func<string, List<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), relatedCode) as List<Node<TSourceNode>>;
+            return _cachingService.Cache(GetCacheKey(relatedCode), 1000, new Func<string, IEnumerable<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), relatedCode) as IEnumerable<Node<TSourceNode>>;
         }
 
-        public List<Node<TSourceNode>> GetCachedRelated<TSourceNode>(int id) where TSourceNode : class, IDBSearchable, new()                                    
+        public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(int id) where TSourceNode : class, IDBSearchable, new()                                    
         {
             return
-                _cachingService.Cache(GetCacheKey(id), 1000, new Func<int, List<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), id) as List<Node<TSourceNode>>;
+                _cachingService.Cache(GetCacheKey(id), 1000, new Func<int, IEnumerable<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), id) as IEnumerable<Node<TSourceNode>>;
         }
 
-        public List<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()                                    
+        public IEnumerable<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()                                    
         {
             return GetRelated<Node<TSourceNode>,TSourceNode>(GetNode<TSourceNode>(relatedCode));
         }
 
-        public List<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(int id) where TSourceNode : class, IDBSearchable, new()
+        public IEnumerable<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(int id) where TSourceNode : class, IDBSearchable, new()
         {            
             return GetRelated<Node<TSourceNode>,TSourceNode>(GetNode<TSourceNode>(id));
         }
 
         private Node<TResult> GetNode<TResult>( object identifier) where TResult : class, IDBSearchable, new()
         {
+            var identifierStr = string.Empty;
+            if (identifier is string)
+                identifierStr = identifier.ToString();
+
+            var idenitiferInt = -1000;
+            if (identifier is int)
+                idenitiferInt = (int)identifier;
+
             if (typeof(TResult) == typeof(TNode))
             {
-                if (identifier is string)
-                    return _sourceDataSource.GetByItemCode<TResult>(identifier.ToString());
-                if (identifier is int)
-                    return _sourceDataSource.GetNodeReferenceById<TResult>((int) identifier);
+                if (string.IsNullOrEmpty( identifierStr))
+                    return _sourceDataSource.GetByItemCode<TResult>(identifierStr);
+                if (idenitiferInt >= 0)
+                    return _sourceDataSource.GetNodeReferenceById<TResult>(idenitiferInt);
                 throw new InvalidSourceNodeException();
             }
 
-            if (identifier is string)
-                return _targetDataSource.GetByItemCode<TResult>(identifier.ToString());
-            if (identifier is int)
-                return _targetDataSource.GetNodeReferenceById<TResult>((int)identifier);
+            if (string.IsNullOrEmpty(identifierStr))
+                return _targetDataSource.GetByItemCode<TResult>(identifierStr);
+            if (idenitiferInt >= 0)
+                return _targetDataSource.GetNodeReferenceById<TResult>(idenitiferInt);
             throw new InvalidSourceNodeException();
 
         }
 
 
-        public List<TSourceNode> GetRelated<TSourceNode>(int id) 
+        public IEnumerable<TSourceNode> GetRelated<TSourceNode>(int id) 
             where TSourceNode : class, IDBSearchable, new()
         {
             var node = GetNode<TSourceNode>(id);
             return GetRelated<TSourceNode,TSourceNode>(node);
         }
 
-        public List<TSourceNode> GetRelated<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()
+        public IEnumerable<TSourceNode> GetRelated<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()
         {
             return GetRelated<TSourceNode, TSourceNode>(GetNode<TSourceNode>(relatedCode));           
         }
 
-        public List<TResult> GetRelated<TResult, TSourceNode>(Node<TSourceNode> node)            
+        public IEnumerable<TResult> GetRelated<TResult, TSourceNode>(Node<TSourceNode> node)            
             where TSourceNode : class, new()
         {
+            if (node == null) throw new ArgumentNullException("node");
             var matchText = string.Format("source-[:{0}]-targets", TypeKeyRelatingNodes());
 
-            return
-                node
-                .StartCypher("source")
-                .Match(matchText)
-                   .ReturnDistinct<TResult>("targets")
-                   .Results
-                   .ToList();
+            return node.StartCypher("source").Match(matchText).ReturnDistinct<TResult>("targets").Results;
         }
 
-        public List<RelationshipInstance<TData>> GetRelationships<TData>() where TData : class, new()
+        public IEnumerable<RelationshipInstance<TData>> GetRelationships<TData>() where TData : class, new()
         {
             var relatedTypeKey = TypeKeyRelatingNodes(typeof(TData));
 
@@ -187,7 +198,7 @@ namespace Neo4jClientRepository
             return _relationshipManager.GetTypeKey(typeof(TNode), typeof(TTargetNode));
         }
 
-        private string GetSourceRootKey()
+        private static string GetSourceRootKey()
         {
             //return _relationshipManager.GetTypeKey()
             return "";
@@ -220,6 +231,13 @@ namespace Neo4jClientRepository
         {
             if (payload == null) throw new ArgumentNullException("payload");
             return _relationshipManager.GetTypeKey(typeof(TNode), typeof(TTargetNode), payload);
+        }
+
+
+        public IEnumerable<TSourceNode> GetAllCachedRelated<TSourceNode>()
+        {
+            var matchText = _relationshipManager.GetMatchStringToRootForSource(typeof (TSourceNode));
+            return _graphClient.RootNode.StartCypher("root").Match(matchText).ReturnDistinct<TSourceNode>("targets").Results;
         }
     }
 }

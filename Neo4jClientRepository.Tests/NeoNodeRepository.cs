@@ -1,7 +1,8 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo4jClientRepository.RelationshipManager;
 using Neo4jClientRepository.Tests.Relationships;
-using Neo4jClientRepository.Tests.Domain;
+
 using Neo4jClient;
 
 namespace Neo4jClientRepository.Tests
@@ -9,13 +10,13 @@ namespace Neo4jClientRepository.Tests
     [TestClass]
     public class NeoNodeRepository
     {
-        private Neo4NodeRepository<OwnedBy> _nodeRepo;
+        private INeo4NodeRepository _nodeRepo;
 
-        private INeo4jRelationshipManager relationshipManager = new Neo4jRelationshipManager();
+        private readonly INeo4jRelationshipManager relationshipManager = new Neo4jRelationshipManager();
         [TestInitialize]
         public void Init()
         {
-            GraphClient graphClient = new GraphClient(new Uri("http://localhost:7474/db/data"));
+            var graphClient = new GraphClient(new Uri("http://localhost:7474/db/data"));
             graphClient.Connect();
 
 
