@@ -1,4 +1,5 @@
 ﻿using Neo4jClient;
+using Neo4jClientRepository.IdGenerator;
 using Neo4jClientRepository.RelationshipManager;
 using Neo4jClientRepository.Tests.Domain;
 using Neo4jClientRepository.Tests.Relationships;
@@ -21,10 +22,13 @@ namespace Neo4jClientRepository.Tests
             // Based on http://wiki.neo4j.org/content/Image:Warehouse.png
 
             INeo4jRelationshipManager relationshipManager = new Neo4jRelationshipManager();
-            
-            var storageLocationService = new Neo4NodeRepository<OwnedBy>(graph, relationshipManager, "Name");
 
-            var partsAndProductService = new Neo4NodeRepository<StoredIn>(graph, relationshipManager, "Name");            
+            var idRepoService = new IdRepoService(graph,relationshipManager);
+            var idGenerator = new IDGenerator(50,idRepoService);
+            
+            var storageLocationService = new Neo4NodeRepository<OwnedBy>(graph, relationshipManager,idGenerator, "Name");
+
+            var partsAndProductService = new Neo4NodeRepository<StoredIn>(graph, relationshipManager,idGenerator, "Name");            
 
             var frameStore = storageLocationService.UpdateOrInsert(new StorageLocation {Name = "Frame Store"},null);
 
@@ -36,6 +40,7 @@ namespace Neo4jClientRepository.Tests
 
 
         }
+
 
     }
 }

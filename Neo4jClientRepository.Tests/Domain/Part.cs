@@ -6,11 +6,8 @@ namespace Neo4jClientRepository.Tests.Domain
     {
         public string Name { get; set; }
         
-        public string ItemSearchCodeIndexName()
-        {
-            return Name;
-        }
+        
 
-        public int Id { get; set; }
+        public long Id { get; set; }
     }
 }

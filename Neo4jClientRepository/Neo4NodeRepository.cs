@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Neo4jClientRepository.IdGenerator;
 using Neo4jClientRepository.RelationshipManager;
 
 namespace Neo4jClientRepository
 {
     public class Neo4NodeRepository<TRelationship> : INeo4NodeRepository where TRelationship : Relationship
     {
+        private readonly IIDGenerator _idGenerator;
         private  IGraphClient _graphClient;
         private  INeo4jRelationshipManager _relationshipManager;
         private  NodeReference _referenceNode;
@@ -18,8 +20,9 @@ namespace Neo4jClientRepository
         private Type TargetType { get; set; }
         protected Type Relationship { get; set; }
 
-        public Neo4NodeRepository(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, string indexSerchCode)
+        public Neo4NodeRepository(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, IIDGenerator idGenerator, string indexSerchCode)
         {
+            _idGenerator = idGenerator;
             Init(graphClient, relationshipManager, null, indexSerchCode);
         }
 
@@ -115,13 +118,17 @@ namespace Neo4jClientRepository
         }
 
 
-        public NodeReference UpdateOrInsert<TNode>(TNode item, NodeReference linkedItem)
-            where TNode : class, new()
+        public NodeReference UpdateOrInsert<TNode>(TNode item, NodeReference linkedItem) where TNode : class,IDBSearchable, new()
+            
         {
-            var existing = GetByIndex<Node<TNode>>("Id", GetItemId(item), typeof(TNode));
+            var existing = GetByIndex<Node<TNode>>("Id", item.Id, typeof(TNode));
 
             if (existing == null)
-                return _graphClient.Create(item, new[] { GetReferenceToLinkedItem<TNode>(GetLinkedReference(linkedItem)) }, new[] { GetIndexEntry(item) });
+            {
+                if (item.Id == 0)
+                    item.Id = _idGenerator.GetNew(item.GetType().Name);
+                return _graphClient.Create(item, new[] {GetReferenceToLinkedItem<TNode>(GetLinkedReference(linkedItem))},new[] {GetIndexEntry(item)});
+            }
             _graphClient.Update(existing.Reference, node => UpdateNode(item, node), x => new[] { GetIndexEntry(x) });
             return existing.Reference;
         }
@@ -146,15 +153,15 @@ namespace Neo4jClientRepository
             return existingNode;
         }
 
-        private static int GetItemId(object item)
-        {
-            var id = GetItemsProperties(item).SingleOrDefault(x => x.Name == "Id");
+        //private static int GetItemId(object item)
+        //{
+        //    var id = GetItemsProperties(item).SingleOrDefault(x => x.Name == "Id");
 
-            if (id == null)
-                return -1;
+        //    if (id == null)
+        //        return -1;
 
-            return (int)id.GetValue(item, null);         
-        }
+        //    return (int)id.GetValue(item, null);         
+        //}
 
 
        

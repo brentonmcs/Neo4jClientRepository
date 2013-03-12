@@ -16,7 +16,8 @@ namespace Neo4jClientRepository
                
         Node<TResult> GetNodeReferenceById<TResult>(int id) where TResult : class;
         TResult GetByTree<TResult>(Expression<Func<TResult, bool>> filter);
-        NodeReference UpdateOrInsert<TNode>(TNode item, NodeReference linkedItem) where TNode : class, new();
+
+        NodeReference UpdateOrInsert<TNode>(TNode item, NodeReference linkedItem) where TNode : class, IDBSearchable, new();
         void DeleteNode(NodeReference node);
 
         string ItemCodeIndexName { get;  }

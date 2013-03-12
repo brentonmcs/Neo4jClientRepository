@@ -15,7 +15,7 @@ namespace Neo4jClientRepository
         void AddRelatedRelationship<TData>(string source, string target, TData properties) where TData : class, new();
 
         IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new();
-        IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(int id) where TSourceNode : class, IDBSearchable, new();
+        IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(long id) where TSourceNode : class, IDBSearchable, new();
         IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(Node<TSourceNode> node) where TSourceNode : class, IDBSearchable, new();
 
         IEnumerable<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new();

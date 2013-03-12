@@ -88,7 +88,7 @@ namespace Neo4jClientRepository
             return _cachingService.Cache(GetCacheKey(relatedCode), 1000, new Func<string, IEnumerable<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), relatedCode) as IEnumerable<Node<TSourceNode>>;
         }
 
-        public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(int id) where TSourceNode : class, IDBSearchable, new()                                    
+        public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(long id) where TSourceNode : class, IDBSearchable, new()                                    
         {
             return
                 _cachingService.Cache(GetCacheKey(id), 1000, new Func<int, IEnumerable<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), id) as IEnumerable<Node<TSourceNode>>;
@@ -191,7 +191,7 @@ namespace Neo4jClientRepository
             return searchCode + GetRootTypeKey();
         }
 
-        private string GetCacheKey(int id)
+        private string GetCacheKey(long id)
         {
             return id + GetRootTypeKey();
         }

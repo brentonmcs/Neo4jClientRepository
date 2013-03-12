@@ -2,7 +2,7 @@
 {
     public interface IDBSearchable
     {                
-        int Id { get; set; }
+        long Id { get; set; }
     }
 
 }
