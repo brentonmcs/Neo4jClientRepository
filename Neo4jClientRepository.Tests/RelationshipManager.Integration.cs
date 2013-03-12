@@ -35,7 +35,7 @@ namespace Neo4jClientRepository.Tests
 
             _relationshipManager = new Neo4jRelationshipManager();
 
-            _ownedByService = new Neo4NodeRepository<OwnedBy>(_graphClient, _relationshipManager);
+            _ownedByService = new Neo4NodeRepository<OwnedBy>(_graphClient, _relationshipManager, "Name");
 
             _initialAddRef = _ownedByService.UpdateOrInsert(new StorageLocation { Id = 0, Name = "Main WH" }, _graphClient.RootNode);
   
@@ -108,7 +108,9 @@ namespace Neo4jClientRepository.Tests
         public void Destroy()
         {
             var refNode = _ownedByService.GetNodeReferenceById<StorageLocation>(0);
-            _ownedByService.DeleteNode(refNode.Reference);
+
+            if (refNode != null)
+                _ownedByService.DeleteNode(refNode.Reference);
         }
 
 

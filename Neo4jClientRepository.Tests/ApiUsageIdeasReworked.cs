@@ -21,19 +21,16 @@ namespace Neo4jClientRepository.Tests
             // Based on http://wiki.neo4j.org/content/Image:Warehouse.png
 
             INeo4jRelationshipManager relationshipManager = new Neo4jRelationshipManager();
+            
+            var storageLocationService = new Neo4NodeRepository<OwnedBy>(graph, relationshipManager, "Name");
 
-
-            var storageLocationService = new Neo4NodeRepository<OwnedBy>(graph, relationshipManager);
-
-            var partsAndProductService = new Neo4NodeRepository<StoredIn>(graph, relationshipManager);
-
-
+            var partsAndProductService = new Neo4NodeRepository<StoredIn>(graph, relationshipManager, "Name");            
 
             var frameStore = storageLocationService.UpdateOrInsert(new StorageLocation {Name = "Frame Store"},null);
 
             var mainStore = storageLocationService.UpdateOrInsert(new StorageLocation { Name = "Main Store" }, null);
 
-            var frame = partsAndProductService.UpdateOrInsert(new Part { Name = "Frame" }, frameStore);
+            partsAndProductService.UpdateOrInsert(new Part { Name = "Frame" }, frameStore);
 
             partsAndProductService.UpdateOrInsert(new Product { Name = "Trike", Weight = 2 }, mainStore);
 

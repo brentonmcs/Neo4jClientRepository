@@ -1,80 +1,60 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Neo4jClient;
-using Neo4jClientRepository.RelationshipManager;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Neo4jClientRepository.IdGenerator
 {
-    public class  IDGenerator :IIDGenerator
+    public class IDGenerator : IIDGenerator
     {
-        private readonly IGraphClient _graphClient;
         private readonly int _cacheSize;
-
-        private readonly INeo4NodeRepository IdReferences;
-        private readonly INeo4jRelatedNodes<IdReferenceNode, IDGeneratorGroupNodes> IdGroupNames;
+        private readonly IDRepoService _idRepoService;
+        private IDictionary<string, IdContainer> _idList;
         
-        public IDGenerator(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, int cacheSize)
-        {
-            _graphClient = graphClient;
-            _cacheSize = cacheSize;
-            IdReferences = new Neo4NodeRepository<IDGeneratorReferenceNode>(_graphClient, relationshipManager);
-            
-            IdGroupNames = new Neo4jRelatedNodes<IdReferenceNode, IDGeneratorGroupNodes, IDGeneratorGroupNodes>(_graphClient, relationshipManager,IdReferences,null,null);
-
-            isLoaded = false;
-        }
-
-        public void LoadGenerator()
-        {
-
-            GeneratorNode = IdReferences.UpdateOrInsert(new IdReferenceNode(), null);                        
-            
-            //Update ndoes with current plus cache
-            IdList = IdGroupNames.GetAllCachedRelated<IDGeneratorNode>().ToDictionary(x=>x.GroupName, x=> new IdContainer { CurrentValue = x.CurrentId, StartValue = x.CurrentId});
-
-
-            
-            isLoaded = true;
-        }
-
-       
-        
-        private NodeReference GeneratorNode;
-
-        private IDictionary<string,IdContainer> IdList;
-        private bool isLoaded;
+        private bool _isLoaded;
 
         public class IdContainer
-        {
-            public NodeReference GroupNodeReference { get; set; } 
+        {            
             public long StartValue { get; set; }
             public long CurrentValue { get; set; }
         }
 
-        public long GetNew(string groupName)
+        public IDGenerator(int cacheSize, IDRepoService idRepoService)
         {
-            if (!isLoaded)
-                throw new NotLoadedException("Call the Load Generator function before getting new Ids");
+            _cacheSize = cacheSize;
+            _idRepoService = idRepoService;
+            _isLoaded = false;
+        }
+        
+        public void LoadGenerator()
+        {
+            //Update ndoes with current plus cache
+            _idList = new ConcurrentDictionary<string, IdContainer>();
 
-            lock (groupName)
+            foreach (var id in _idRepoService.GetAll())
             {
-
-                if (!IdList.ContainsKey(groupName))
-                {
-                    var id = new IdContainer {CurrentValue = 1, StartValue = 1};
-                    CreateNewNode(groupName, id);
-                    return id.CurrentValue;
-                }
-
-                var currentId = IdList[groupName];
-
-                if (currentId.CurrentValue - currentId.StartValue > _cacheSize)
-                    GetNewIds(groupName);
-
-                return currentId.CurrentValue++;
+                _idList.Add(id.GroupName, new IdContainer {CurrentValue = id.CurrentId, StartValue = id.CurrentId});
+                _idRepoService.CreateOrUpdateIdNode(id.GroupName,id.CurrentId + _cacheSize);
             }
 
+            _isLoaded = true;
         }
 
+        public long GetNew(string groupName)
+        {
+            if (!_isLoaded)
+                throw new NotLoadedException("Call the Load Generator function before getting new Ids");
+           
+            if (_idList.ContainsKey(groupName))
+            {                
+                if (_idList[groupName].CurrentValue - _idList[groupName].StartValue >= _cacheSize)
+                    _idRepoService.CreateOrUpdateIdNode(groupName, _idList[groupName].CurrentValue + _cacheSize);
+
+                _idList[groupName].CurrentValue++;
+                return _idList[groupName].CurrentValue;
+            }
+
+            _idRepoService.CreateOrUpdateIdNode(groupName, _cacheSize);
+            _idList.Add(groupName, new IdContainer {CurrentValue = 1, StartValue = 1});
+            return 1;
+        }
     }
 }

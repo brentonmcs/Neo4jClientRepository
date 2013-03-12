@@ -37,10 +37,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FakeItEasy">
+      <HintPath>..\packages\FakeItEasy.1.9.1\lib\net40\FakeItEasy.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.QualityTools.Testing.Fakes, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Neo4jClient">
-      <HintPath>..\packages\Neo4jClient.1.0.0.500\lib\net40\Neo4jClient.dll</HintPath>
+    <Reference Include="Neo4jClient, Version=1.0.0.507, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Neo4jClient.1.0.0.507\lib\net40\Neo4jClient.dll</HintPath>
     </Reference>
     <Reference Include="Neo4jClient.1.0.0.500.Fakes">
       <HintPath>FakesAssemblies\Neo4jClient.1.0.0.500.Fakes.dll</HintPath>
@@ -69,6 +73,7 @@
     <Compile Include="Domain\Product.cs" />
     <Compile Include="Domain\StorageLocation.cs" />
     <Compile Include="Domain\ReferenceNode.cs" />
+    <Compile Include="IdGeneratorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RelationshipManager.Integration.cs" />
     <Compile Include="Relationships\OwnedBy.cs" />

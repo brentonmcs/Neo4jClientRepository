@@ -2,6 +2,7 @@
 {
     public interface IIDGenerator
     {
-        long GetNew(string groupName);        
+        long GetNew(string groupName);
+        void LoadGenerator();
     }
 }

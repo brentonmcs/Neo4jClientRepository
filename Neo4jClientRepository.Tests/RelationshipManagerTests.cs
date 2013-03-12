@@ -174,7 +174,7 @@ namespace Neo4jClientRepository.Tests
         [TestMethod]
         public void GetMatchWhenSourceIsNotRoot()
         {
-            var result = _relationshipManager.GetMatchStringToRootForSource(typeof(OwnedBy));
+            var result = _relationshipManager.GetMatchStringToRootForSource(typeof(Requires));
 
             Assert.IsNotNull(result);
             Assert.AreEqual(2, result.Length);

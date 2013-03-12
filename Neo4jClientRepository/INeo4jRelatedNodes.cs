@@ -26,9 +26,11 @@ namespace Neo4jClientRepository
 
         IEnumerable<TResult> GetRelated<TResult, TSourceNode>(Node<TSourceNode> node) where TSourceNode : class, new();
 
-
         IEnumerable<RelationshipInstance<TData>> GetRelationships<TData>() where TData : class, new();
 
         IEnumerable<TSourceNode> GetAllCachedRelated<TSourceNode>();
+
+        IEnumerable<TSourceNode> FindOtherRelated<TSourceNode>(Node<TSourceNode> startingNode)
+            where TSourceNode : IDBSearchable;
     }
 }

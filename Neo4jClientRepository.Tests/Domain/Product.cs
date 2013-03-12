@@ -8,7 +8,7 @@ namespace Neo4jClientRepository.Tests.Domain
         public double Weight { get; set; }
         public int Id { get; set; }
 
-        public string ItemSearchCode()
+        public string ItemSearchCodeIndexName()
         {
             return Name;
         }

@@ -38,9 +38,9 @@ namespace Neo4jClientRepository
 
         public void AddRelatedRelationship(string sourceCode, string targetCode)
         {
-            AddRelatedRelationship(_sourceDataSource.GetByItemCode<TNode>(sourceCode),
-                                   _targetDataSource.GetByItemCode<TTargetNode>(targetCode));
+            AddRelatedRelationship(_sourceDataSource.GetByItemCode<TNode>(sourceCode), _targetDataSource.GetByItemCode<TTargetNode>(targetCode));
         }
+
 
         public void AddRelatedRelationship(Node<TNode> source, Node<TTargetNode> target)
         {
@@ -53,9 +53,10 @@ namespace Neo4jClientRepository
 
             //TODO need to change this to update the cache not delete?
             if (_cachingService != null)
-                _cachingService.DeleteCache(GetCacheKey(source));
+                _cachingService.DeleteCache(GetCacheKey(_sourceDataSource));
         }
 
+        
         public void AddRelatedRelationship<TData>(Node<TNode> source, Node<TTargetNode> target, TData properties) where TData : class, new()
         {
             if (source == null) throw new ArgumentNullException("source");
@@ -65,7 +66,7 @@ namespace Neo4jClientRepository
             _graphClient.CreateRelationship(source.Reference, GetRelatedRelationship(target, properties));
 
             if (_cachingService != null)
-                _cachingService.DeleteCache(GetCacheKey(source));
+                _cachingService.DeleteCache(GetCacheKey(_sourceDataSource));
         }
 
         public void AddRelatedRelationship<TData>(string source, string target, TData properties)
@@ -79,7 +80,7 @@ namespace Neo4jClientRepository
         {
             if (node == null) throw new ArgumentNullException("node");
             
-            return GetCachedRelated<TSourceNode>(node.Data.ItemSearchCode());
+            return GetCachedRelated<TSourceNode>(node.Data.Id);
         }
 
         public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()
@@ -103,6 +104,18 @@ namespace Neo4jClientRepository
             return GetRelated<Node<TSourceNode>,TSourceNode>(GetNode<TSourceNode>(id));
         }
 
+
+        //This will find Friends Of Friends, What other products users purchased 
+        public IEnumerable<TSourceNode> FindOtherRelated<TSourceNode>(Node<TSourceNode> startingNode) where TSourceNode :IDBSearchable
+        {
+            return startingNode
+                .StartCypher("startNode")
+                .Match("startNode-[:" + GetRootTypeKey() + "]-othernode-[:" + GetRootTypeKey() + "]-otherStartNodes")
+                .Where<TSourceNode>(otherStartNodes => otherStartNodes.Id != startingNode.Data.Id)
+                .Return<TSourceNode>("otherStartNodes")
+                .Results;
+        }
+        
         private Node<TResult> GetNode<TResult>( object identifier) where TResult : class, IDBSearchable, new()
         {
             var identifierStr = string.Empty;
@@ -168,9 +181,9 @@ namespace Neo4jClientRepository
                 .ToList();
         }
 
-        private string GetCacheKey(Node<TNode> source)
+        private string GetCacheKey(INeo4NodeRepository source)
         {
-            return GetCacheKey(source.Data.ItemSearchCode());
+            return GetCacheKey(source.ItemCodeIndexName);
         }
 
         private string GetCacheKey(string searchCode)

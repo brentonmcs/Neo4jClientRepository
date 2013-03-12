@@ -20,7 +20,7 @@ namespace Neo4jClientRepository.Tests
             graphClient.Connect();
 
 
-            _nodeRepo = new Neo4NodeRepository<OwnedBy>(graphClient, relationshipManager);
+            _nodeRepo = new Neo4NodeRepository<OwnedBy>(graphClient, relationshipManager,"Name");
         }
 
         [TestMethod]
