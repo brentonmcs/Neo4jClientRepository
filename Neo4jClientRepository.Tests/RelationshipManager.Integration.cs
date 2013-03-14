@@ -40,7 +40,7 @@ namespace Neo4jClientRepository.Tests
             idGenerator.LoadGenerator(50);
             _ownedByService = new Neo4NodeRepository<OwnedBy>(_graphClient, _relationshipManager,idGenerator, "Name");
 
-            _initialAddRef = _ownedByService.UpdateOrInsert(new StorageLocation { Id = 0, Name = "Main WH" }, _graphClient.RootNode);
+            _initialAddRef = _ownedByService.UpdateOrInsert(new StorageLocation { Id = 1, Name = "Main WH" }, _graphClient.RootNode);
   
         }
 
@@ -48,7 +48,7 @@ namespace Neo4jClientRepository.Tests
         [TestCase]
         public void TestUpdatesNotInsertAnother()
         {
-            var reference2 = _ownedByService.UpdateOrInsert(new StorageLocation { Id = 0, Name = "Main WH" }, _graphClient.RootNode);
+            var reference2 = _ownedByService.UpdateOrInsert(new StorageLocation { Id = 1, Name = "Main WH" }, _graphClient.RootNode);
                       
             Assert.AreEqual(_initialAddRef, reference2);
         }
@@ -61,7 +61,7 @@ namespace Neo4jClientRepository.Tests
             var location = _ownedByService.GetByIndex<StorageLocation>("Name", "Main WH",null);
 
             Assert.NotNull(location);
-            Assert.AreEqual(0, location.Id);
+            Assert.AreEqual(1, location.Id);
         }
 
         
@@ -70,9 +70,9 @@ namespace Neo4jClientRepository.Tests
         [TestCase]
         public void GetByName()
         {
-            var location = _ownedByService.GetById<StorageLocation>(0);
+            var location = _ownedByService.GetById<StorageLocation>(1);
             Assert.NotNull(location);
-            Assert.AreEqual(0, location.Id);
+            Assert.AreEqual(1, location.Id);
 
         }
 
@@ -112,14 +112,14 @@ namespace Neo4jClientRepository.Tests
             var location = _ownedByService.GetByTree<StorageLocation>(node => node.Name == "Main WH");
 
            Assert.NotNull(location);
-           Assert.AreEqual(0, location.Id);
+           Assert.AreEqual(1, location.Id);
   
         }
 
         [TearDown]
         public void Destroy()
         {
-            var refNode = _ownedByService.GetNodeReferenceById<StorageLocation>(0);
+            var refNode = _ownedByService.GetNodeReferenceById<StorageLocation>(1);
 
             if (refNode != null)
                 _ownedByService.DeleteNode(refNode.Reference);

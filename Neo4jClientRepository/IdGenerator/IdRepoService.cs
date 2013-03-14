@@ -9,7 +9,7 @@ namespace Neo4jClientRepository.IdGenerator
     {
         void InitialiseIdRepoService(IIDGenerator idGenerator);
         IEnumerable<IDGeneratorNode> GetAll();
-        void CreateOrUpdateIdNode(string groupName, long newCacheSize);
+        void CreateOrUpdateIdNode(string groupName, long newCacheSize, long id);
     }
 
     public class IdRepoService : IDRepoService
@@ -55,11 +55,11 @@ namespace Neo4jClientRepository.IdGenerator
             return _idRepo.GetAll<IDGeneratorNode>();
         }
 
-        public void CreateOrUpdateIdNode(string groupName, long newCacheSize)
+        public void CreateOrUpdateIdNode(string groupName, long newCacheSize, long id)
         {
             if (!_isLoaded)
                 throw new NotLoadedException("Run the InitialiseIdRepoService for the IdRepoService");
-            _idRepo.UpdateOrInsert(new IDGeneratorNode { CurrentId = newCacheSize, GroupName = groupName }, null);
+            _idRepo.UpdateOrInsert(new IDGeneratorNode { Id= id, CurrentId = newCacheSize, GroupName = groupName }, null);
         }
         
     }

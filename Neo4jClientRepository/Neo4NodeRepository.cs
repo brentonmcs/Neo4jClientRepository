@@ -123,8 +123,9 @@ namespace Neo4jClientRepository
         public NodeReference UpdateOrInsert<TNode>(TNode item, NodeReference linkedItem) where TNode : class,IDBSearchable, new()
             
         {
+            
             var existing = GetByIndex<Node<TNode>>("Id", item.Id, typeof(TNode));
-
+            
             if (existing == null)
             {
                 if (item.Id == 0)
@@ -155,17 +156,7 @@ namespace Neo4jClientRepository
             return existingNode;
         }
 
-        //private static int GetItemId(object item)
-        //{
-        //    var id = GetItemsProperties(item).SingleOrDefault(x => x.Name == "Id");
-
-        //    if (id == null)
-        //        return -1;
-
-        //    return (int)id.GetValue(item, null);         
-        //}
-
-
+      
        
         private static IEnumerable<PropertyInfo> GetItemsProperties(object item)
         {
@@ -179,8 +170,9 @@ namespace Neo4jClientRepository
 
             foreach (var prop in GetItemsProperties(item))
             {
-                indexEntry.Add(prop.Name, prop.GetValue(item,null));
-              
+                var value = prop.GetValue(item, null);
+                if (value != null)
+                    indexEntry.Add(prop.Name, value);
             }
             return indexEntry;
         }
