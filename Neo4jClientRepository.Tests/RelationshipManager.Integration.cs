@@ -36,8 +36,8 @@ namespace Neo4jClientRepository.Tests
 
             _relationshipManager = new Neo4jRelationshipManager();
             var idRepoService = new IdRepoService(_graphClient, _relationshipManager);
-            var idGenerator = new IDGenerator(50, idRepoService);
-            
+            var idGenerator = new IDGenerator {IDRepoService = idRepoService};
+            idGenerator.LoadGenerator(50);
             _ownedByService = new Neo4NodeRepository<OwnedBy>(_graphClient, _relationshipManager,idGenerator, "Name");
 
             _initialAddRef = _ownedByService.UpdateOrInsert(new StorageLocation { Id = 0, Name = "Main WH" }, _graphClient.RootNode);
@@ -96,6 +96,15 @@ namespace Neo4jClientRepository.Tests
             
         }
 
+        [TestCase]
+        public void TestId()
+        {
+            _ownedByService.UpdateOrInsert(new StorageLocation {  Name = "Second Warehouse" }, _graphClient.RootNode);
+
+            var location = _ownedByService.GetByTree<StorageLocation>(node => node.Name == "Second Warehouse");
+
+
+        }
 
         [TestCase]
         public void GetByTreeSearch()

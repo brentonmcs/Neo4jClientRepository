@@ -16,7 +16,7 @@ namespace Neo4jClientRepository.Tests
         {
             _repoService = A.Fake<IDRepoService>();
 
-            _idGenerator = new IDGenerator(3,_repoService);
+            _idGenerator = new IDGenerator();
         }
 
         [Test]
@@ -30,7 +30,7 @@ namespace Neo4jClientRepository.Tests
         [Test]
         public void TestGetOneForNewGroup()
         {
-            _idGenerator.LoadGenerator();
+            _idGenerator.LoadGenerator(3);
             A.CallTo(() => _repoService.GetAll()).Returns(new List<IDGeneratorNode>());
             var result = _idGenerator.GetNew("Test");
             Assert.AreEqual(1, result);
@@ -46,7 +46,7 @@ namespace Neo4jClientRepository.Tests
                     new IDGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
             A.CallTo(() => _repoService.GetAll()).Returns(idList);
-            _idGenerator.LoadGenerator();
+            _idGenerator.LoadGenerator(3);
             var result = _idGenerator.GetNew("Test");
             Assert.AreEqual(2, result);
         }
@@ -60,7 +60,7 @@ namespace Neo4jClientRepository.Tests
                     new IDGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
             A.CallTo(() => _repoService.GetAll()).Returns(idList);
-            _idGenerator.LoadGenerator();
+            _idGenerator.LoadGenerator(3);
             var result = _idGenerator.GetNew("Test");
             Assert.AreEqual(2, result);
              result = _idGenerator.GetNew("Test");
@@ -75,7 +75,7 @@ namespace Neo4jClientRepository.Tests
                     new IDGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
             A.CallTo(() => _repoService.GetAll()).Returns(idList);
-            _idGenerator.LoadGenerator();           
+            _idGenerator.LoadGenerator(3);           
             var result = _idGenerator.GetNew("Test");
             Assert.AreEqual(2, result);
             result = _idGenerator.GetNew("Test2");
@@ -93,7 +93,7 @@ namespace Neo4jClientRepository.Tests
                 };
             A.CallTo(() => _repoService.GetAll()).Returns(idList);
             
-            _idGenerator.LoadGenerator();
+            _idGenerator.LoadGenerator(3);
             var result = _idGenerator.GetNew("Test");
             Assert.AreEqual(2, result);
             result = _idGenerator.GetNew("Test");
@@ -114,7 +114,7 @@ namespace Neo4jClientRepository.Tests
                 };
             A.CallTo(() => _repoService.GetAll()).Returns(idList);
 
-            _idGenerator.LoadGenerator();
+            _idGenerator.LoadGenerator(3);
             A.CallTo(() => _repoService.CreateOrUpdateIdNode("Test", 4)).MustHaveHappened();
         }
 

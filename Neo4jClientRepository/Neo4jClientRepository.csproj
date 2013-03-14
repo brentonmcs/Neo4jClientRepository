@@ -51,6 +51,9 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Ninject">
+      <HintPath>..\packages\Ninject.3.0.1.10\lib\net45-full\Ninject.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
@@ -65,7 +68,7 @@
     <Compile Include="IdGenerator\IdRepoService.cs" />
     <Compile Include="IdGenerator\Nodes\IDGeneratorGroupNodes.cs" />
     <Compile Include="IdGenerator\Nodes\IdGeneratorNode.cs" />
-    <Compile Include="IdGenerator\Nodes\IDGeneratorReferenceNode.cs" />
+    <Compile Include="IdGenerator\Nodes\IDGeneratorRefNodeRelationship.cs" />
     <Compile Include="IdGenerator\Nodes\IdReferenceNode.cs" />
     <Compile Include="IdGenerator\IIdGenerator.cs" />
     <Compile Include="IdGenerator\Exceptions\NotLoadedException.cs" />

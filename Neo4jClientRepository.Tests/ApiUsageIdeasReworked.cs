@@ -24,8 +24,9 @@ namespace Neo4jClientRepository.Tests
             INeo4jRelationshipManager relationshipManager = new Neo4jRelationshipManager();
 
             var idRepoService = new IdRepoService(graph,relationshipManager);
-            var idGenerator = new IDGenerator(50,idRepoService);
+            var idGenerator = new IDGenerator();
             
+            idGenerator.LoadGenerator(50);
             var storageLocationService = new Neo4NodeRepository<OwnedBy>(graph, relationshipManager,idGenerator, "Name");
 
             var partsAndProductService = new Neo4NodeRepository<StoredIn>(graph, relationshipManager,idGenerator, "Name");            

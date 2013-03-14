@@ -3,6 +3,6 @@
     public interface IIDGenerator
     {
         long GetNew(string groupName);
-        void LoadGenerator();
+        void LoadGenerator(int cacheSize);
     }
 }

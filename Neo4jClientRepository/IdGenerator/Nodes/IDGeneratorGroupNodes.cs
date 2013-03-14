@@ -4,7 +4,7 @@ namespace Neo4jClientRepository.IdGenerator
 {
     public class IDGeneratorGroupNodes :
         Relationship,
-        IRelationshipAllowingSourceNode<RootNode>,
+        IRelationshipAllowingSourceNode<IdReferenceNode>,
         IRelationshipAllowingTargetNode<IDGeneratorNode>
     {
         public IDGeneratorGroupNodes(NodeReference targetNode)

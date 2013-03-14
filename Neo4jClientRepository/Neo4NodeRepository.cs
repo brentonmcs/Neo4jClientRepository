@@ -11,7 +11,7 @@ namespace Neo4jClientRepository
 {
     public class Neo4NodeRepository<TRelationship> : INeo4NodeRepository where TRelationship : Relationship
     {
-        private readonly IIDGenerator _idGenerator;
+        private  IIDGenerator _idGenerator;
         private  IGraphClient _graphClient;
         private  INeo4jRelationshipManager _relationshipManager;
         private  NodeReference _referenceNode;
@@ -22,17 +22,17 @@ namespace Neo4jClientRepository
 
         public Neo4NodeRepository(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, IIDGenerator idGenerator, string indexSerchCode)
         {
-            _idGenerator = idGenerator;
-            Init(graphClient, relationshipManager, null, indexSerchCode);
+            
+            Init(graphClient, relationshipManager, null, indexSerchCode, idGenerator);
         }
 
-        public Neo4NodeRepository(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager,  string indexSerchCode, NodeReference referenceNode)
+        public Neo4NodeRepository(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, IIDGenerator idGenerator,  string indexSerchCode, NodeReference referenceNode)
         {
-            Init(graphClient, relationshipManager, referenceNode, indexSerchCode);
-                
+            Init(graphClient, relationshipManager, referenceNode, indexSerchCode, idGenerator);
+               
         }
 
-        private void Init(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, NodeReference referenceNode, string indexSerchCode)
+        private void Init(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, NodeReference referenceNode, string indexSerchCode, IIDGenerator idGenerator)
         {
             
             if (graphClient == null) throw new ArgumentNullException("graphClient");
@@ -41,14 +41,16 @@ namespace Neo4jClientRepository
             _graphClient = graphClient;
             _relationshipManager = relationshipManager;
             ItemCodeIndexName = indexSerchCode;
-
+            _idGenerator = idGenerator;
             SourceType = _relationshipManager.GetSourceType(typeof(TRelationship));
             TargetType = _relationshipManager.GetTargetType(typeof(TRelationship));
 
             Relationship = typeof (TRelationship);
 
+            _referenceNode = referenceNode;
             if (referenceNode == null)
                 _referenceNode = graphClient.RootNode;
+            
         }
 
         public TResult GetByIndex<TResult>(string key, object value, Type indexType) where TResult : class 
