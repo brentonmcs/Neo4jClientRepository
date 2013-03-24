@@ -16,7 +16,7 @@ namespace Neo4jClientRepository.Tests
         Neo4jRelationshipManager _relationshipManager;
         Neo4NodeRepository<OwnedBy> _ownedByService;
 
-        NodeReference _initialAddRef;
+        Node<StorageLocation> _initialAddRef;
         [SetUp]
         public void Init()
         {

@@ -76,7 +76,7 @@ namespace Neo4jClientRepository
         }
 
 
-        public TResult GetById<TResult>(int id)
+        public TResult GetById<TResult>(long id)
             where TResult : class 
         {
             return GetByIndex<TResult>("Id", id,null);
@@ -89,7 +89,7 @@ namespace Neo4jClientRepository
         }
 
 
-        public Node<TResult> GetNodeReferenceById<TResult>(int id) where TResult : class 
+        public Node<TResult> GetNodeReferenceById<TResult>(long id) where TResult : class 
         {
             return GetByIndex<Node<TResult>>("Id", id, typeof(TResult));
         }
@@ -120,7 +120,7 @@ namespace Neo4jClientRepository
         }
 
 
-        public NodeReference UpdateOrInsert<TNode>(TNode item, NodeReference linkedItem) where TNode : class,IDBSearchable, new()
+        public Node<TNode> UpdateOrInsert<TNode>(TNode item, NodeReference linkedItem) where TNode : class,IDBSearchable, new()
             
         {
             
@@ -130,11 +130,15 @@ namespace Neo4jClientRepository
             {
                 if (item.Id == 0)
                     item.Id = _idGenerator.GetNew(item.GetType().Name);
-                return _graphClient.Create(item, new[] {GetReferenceToLinkedItem<TNode>(GetLinkedReference(linkedItem))},new[] {GetIndexEntry(item)});
+                var resultNode = _graphClient.Create(item, new[] {GetReferenceToLinkedItem<TNode>(GetLinkedReference(linkedItem))},new[] {GetIndexEntry(item)});
+                
+                return _graphClient.Get(resultNode);
+
             }
             _graphClient.Update(existing.Reference, node => UpdateNode(item, node), x => new[] { GetIndexEntry(x) });
-            return existing.Reference;
+            return existing;
         }
+      
 
         private NodeReference GetLinkedReference(NodeReference linkedItem)
         {

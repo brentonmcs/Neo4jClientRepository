@@ -41,7 +41,7 @@ namespace Neo4jClientRepository
             AddRelatedRelationship(_sourceDataSource.GetByItemCode<TNode>(sourceCode), _targetDataSource.GetByItemCode<TTargetNode>(targetCode));
         }
 
-
+       
         public void AddRelatedRelationship(Node<TNode> source, Node<TTargetNode> target)
         {
             if (source == null) throw new ArgumentNullException("source");
@@ -79,29 +79,33 @@ namespace Neo4jClientRepository
         public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(Node<TSourceNode> node) where TSourceNode : class, IDBSearchable, new()
         {
             if (node == null) throw new ArgumentNullException("node");
-            
-            return GetCachedRelated<TSourceNode>(node.Data.Id);
+
+            return GetRelated<Node<TSourceNode>>(node.Reference);
         }
 
-        public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()
+        public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(string relatedCode, bool searchSource) where TSourceNode : class, IDBSearchable, new()
         {
-            return _cachingService.Cache(GetCacheKey(relatedCode), 1000, new Func<string, IEnumerable<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), relatedCode) as IEnumerable<Node<TSourceNode>>;
+            return _cachingService.Cache(GetCacheKey(relatedCode), 1000, new Func<string, bool, IEnumerable<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), relatedCode, searchSource) as IEnumerable<Node<TSourceNode>>;
         }
 
-        public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(long id) where TSourceNode : class, IDBSearchable, new()                                    
+        public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(long id, bool searchSource) where TSourceNode : class, IDBSearchable, new()                                    
         {
-            return
-                _cachingService.Cache(GetCacheKey(id), 1000, new Func<int, IEnumerable<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), id) as IEnumerable<Node<TSourceNode>>;
+            //return
+            //    _cachingService.Cache(GetCacheKey(id), 1000, new Func<int, IEnumerable<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), id) as IEnumerable<Node<TSourceNode>>
+
+            return GetRelatedNodes<TSourceNode>(id, searchSource);
         }
 
-        public IEnumerable<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()                                    
+        public IEnumerable<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(string relatedCode, bool searchSource) where TSourceNode : class, IDBSearchable, new()
         {
-            return GetRelated<Node<TSourceNode>,TSourceNode>(GetNode<TSourceNode>(relatedCode));
+            var searchNode = GetNode(relatedCode, searchSource);
+            return searchNode == null ? null : GetRelated<Node<TSourceNode>>(searchNode);
         }
 
-        public IEnumerable<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(int id) where TSourceNode : class, IDBSearchable, new()
-        {            
-            return GetRelated<Node<TSourceNode>,TSourceNode>(GetNode<TSourceNode>(id));
+        public IEnumerable<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(long id, bool searchSource) where TSourceNode : class, IDBSearchable, new()
+        {
+            var searchNode = GetNode(id, searchSource);
+            return searchNode == null ? null : GetRelated<Node<TSourceNode>>(searchNode);
         }
 
 
@@ -116,53 +120,54 @@ namespace Neo4jClientRepository
                 .Results;
         }
         
-        private Node<TResult> GetNode<TResult>( object identifier) where TResult : class, IDBSearchable, new()
+        private NodeReference GetNode( object identifier, bool searchSource)
         {
             var identifierStr = string.Empty;
             if (identifier is string)
                 identifierStr = identifier.ToString();
 
-            var idenitiferInt = -1000;
-            if (identifier is int)
-                idenitiferInt = (int)identifier;
+            var idenitiferLong = -1000L;
+            if (identifier is long)
+                idenitiferLong = long.Parse(identifier.ToString());
 
-            if (typeof(TResult) == typeof(TNode))
+            if (searchSource)
             {
-                if (string.IsNullOrEmpty( identifierStr))
-                    return _sourceDataSource.GetByItemCode<TResult>(identifierStr);
-                if (idenitiferInt >= 0)
-                    return _sourceDataSource.GetNodeReferenceById<TResult>(idenitiferInt);
+                if (!string.IsNullOrEmpty( identifierStr))
+                    return _sourceDataSource.GetByItemCode<TNode>(identifierStr).Reference;
+                if (idenitiferLong >= 0)
+                    return _sourceDataSource.GetNodeReferenceById<TNode>(idenitiferLong).Reference;
                 throw new InvalidSourceNodeException();
             }
 
-            if (string.IsNullOrEmpty(identifierStr))
-                return _targetDataSource.GetByItemCode<TResult>(identifierStr);
-            if (idenitiferInt >= 0)
-                return _targetDataSource.GetNodeReferenceById<TResult>(idenitiferInt);
+            if (!string.IsNullOrEmpty(identifierStr))
+                return _targetDataSource.GetByItemCode<TTargetNode>(identifierStr).Reference;
+            if (idenitiferLong >= 0)
+                return _targetDataSource.GetNodeReferenceById<TTargetNode>(idenitiferLong).Reference;
             throw new InvalidSourceNodeException();
 
         }
 
 
-        public IEnumerable<TSourceNode> GetRelated<TSourceNode>(int id) 
+        public IEnumerable<TSourceNode> GetRelated<TSourceNode>(long id, bool searchSource) 
             where TSourceNode : class, IDBSearchable, new()
         {
-            var node = GetNode<TSourceNode>(id);
-            return GetRelated<TSourceNode,TSourceNode>(node);
+            var node = GetNode(id, searchSource);
+            return GetRelated<TSourceNode>(node);
         }
 
-        public IEnumerable<TSourceNode> GetRelated<TSourceNode>(string relatedCode) where TSourceNode : class, IDBSearchable, new()
+        public IEnumerable<TSourceNode> GetRelated<TSourceNode>(string relatedCode, bool searchSource) where TSourceNode : class, IDBSearchable, new()
         {
-            return GetRelated<TSourceNode, TSourceNode>(GetNode<TSourceNode>(relatedCode));           
+            return GetRelated<TSourceNode>(GetNode(relatedCode, searchSource));           
         }
 
-        public IEnumerable<TResult> GetRelated<TResult, TSourceNode>(Node<TSourceNode> node)            
-            where TSourceNode : class, new()
+        public IEnumerable<TResult> GetRelated<TResult>(NodeReference node)
         {
             if (node == null) throw new ArgumentNullException("node");
-            var matchText = string.Format("source-[:{0}]-targets", TypeKeyRelatingNodes());
+            var matchText = string.Format("source-[:{0}]-targets", TypeKeyRelatingNodes());            
+            var results = node.StartCypher("source").Match(matchText).ReturnDistinct<TResult>("targets");
 
-            return node.StartCypher("source").Match(matchText).ReturnDistinct<TResult>("targets").Results;
+            var query = results.Query.QueryText;
+            return results.Results.ToList();
         }
 
         public IEnumerable<RelationshipInstance<TData>> GetRelationships<TData>() where TData : class, new()
@@ -241,8 +246,7 @@ namespace Neo4jClientRepository
         }
       
         private string TypeKeyRelatingNodes(Type payload = null)
-        {
-            if (payload == null) throw new ArgumentNullException("payload");
+        {            
             return _relationshipManager.GetTypeKey(typeof(TNode), typeof(TTargetNode), payload);
         }
 
@@ -252,5 +256,10 @@ namespace Neo4jClientRepository
             var matchText = _relationshipManager.GetMatchStringToRootForSource(typeof (TSourceNode));
             return _graphClient.RootNode.StartCypher("root").Match(matchText).ReturnDistinct<TSourceNode>("targets").Results;
         }
+
+
+
+
+       
     }
 }

@@ -35,9 +35,9 @@ namespace Neo4jClientRepository.Tests
 
             var mainStore = storageLocationService.UpdateOrInsert(new StorageLocation { Name = "Main Store" }, null);
 
-            partsAndProductService.UpdateOrInsert(new Part { Name = "Frame" }, frameStore);
+            partsAndProductService.UpdateOrInsert(new Part { Name = "Frame" }, frameStore.Reference);
 
-            partsAndProductService.UpdateOrInsert(new Product { Name = "Trike", Weight = 2 }, mainStore);
+            partsAndProductService.UpdateOrInsert(new Product { Name = "Trike", Weight = 2 }, mainStore.Reference);
 
 
         }
