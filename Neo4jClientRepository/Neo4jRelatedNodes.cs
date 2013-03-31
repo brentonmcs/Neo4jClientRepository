@@ -112,12 +112,17 @@ namespace Neo4jClientRepository
         //This will find Friends Of Friends, What other products users purchased 
         public IEnumerable<TSourceNode> FindOtherRelated<TSourceNode>(Node<TSourceNode> startingNode) where TSourceNode :IDBSearchable
         {
-            return startingNode
+            var matchQuery = string.Format("startNode-[:{0}]-othernode-[:{0}]-otherStartNodes", GetRootTypeKey());
+
+            return 
+                startingNode
                 .StartCypher("startNode")
-                .Match("startNode-[:" + GetRootTypeKey() + "]-othernode-[:" + GetRootTypeKey() + "]-otherStartNodes")
-                .Where<TSourceNode>(otherStartNodes => otherStartNodes.Id != startingNode.Data.Id)
-                .Return<TSourceNode>("otherStartNodes")
-                .Results;
+                .Match(matchQuery)
+                //.Where<TSourceNode, TSourceNode>((otherStartNodes, startNode) => otherStartNodes.Id != startNode.Id)                
+                .Where("startNode.Id <> otherStartNodes.Id")
+                .Return<TSourceNode>("otherStartNodes").Results;                        
+
+            //
         }
         
         private NodeReference GetNode( object identifier, bool searchSource)
@@ -141,8 +146,9 @@ namespace Neo4jClientRepository
 
             if (!string.IsNullOrEmpty(identifierStr))
                 return _targetDataSource.GetByItemCode<TTargetNode>(identifierStr).Reference;
-            if (idenitiferLong >= 0)
+            if (idenitiferLong > 0)
                 return _targetDataSource.GetNodeReferenceById<TTargetNode>(idenitiferLong).Reference;
+
             throw new InvalidSourceNodeException();
 
         }
