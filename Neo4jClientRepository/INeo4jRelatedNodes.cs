@@ -14,6 +14,8 @@ namespace Neo4jClientRepository
 
         void AddRelatedRelationship<TData>(string source, string target, TData properties) where TData : class, new();
 
+        string GetRootTypeKey();
+
         IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(string relatedCode, bool searchSource) where TSourceNode : class, IDBSearchable, new();
         IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(long id, bool searchSource) where TSourceNode : class, IDBSearchable, new();
         IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(Node<TSourceNode> node) where TSourceNode : class, IDBSearchable, new();
@@ -30,7 +32,7 @@ namespace Neo4jClientRepository
 
         IEnumerable<TSourceNode> GetAllCachedRelated<TSourceNode>();
 
-        IEnumerable<TSourceNode> FindOtherRelated<TSourceNode>(Node<TSourceNode> startingNode)
+        IEnumerable<TSourceNode> FindOtherRelated<TSourceNode>(Node<TSourceNode> startingNode, string typeKey)
             where TSourceNode : IDBSearchable;
     }
 }

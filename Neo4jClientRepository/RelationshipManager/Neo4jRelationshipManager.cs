@@ -92,8 +92,7 @@ namespace Neo4jClientRepository.RelationshipManager
                     .Where(x => x.Key.Source.Contains(source))
                     .Where(x => x.Key.Target.Contains(target));
 
-                if (payload != null)
-                    sourceTypeRealtionships= sourceTypeRealtionships.Where(x => x.Key.Payload == payload);
+                sourceTypeRealtionships = payload != null ? sourceTypeRealtionships.Where(x => x.Key.Payload == payload) : sourceTypeRealtionships.Where(x => x.Key.Payload == null);
 
                 return sourceTypeRealtionships.Single().Value;
             }

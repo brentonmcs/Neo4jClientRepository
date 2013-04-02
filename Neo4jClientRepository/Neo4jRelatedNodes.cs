@@ -112,19 +112,16 @@ namespace Neo4jClientRepository
 
 
         //This will find Friends Of Friends, What other products users purchased 
-        public IEnumerable<TSourceNode> FindOtherRelated<TSourceNode>(Node<TSourceNode> startingNode) where TSourceNode :IDBSearchable
+        public IEnumerable<TSourceNode> FindOtherRelated<TSourceNode>(Node<TSourceNode> startingNode, string typeKey) where TSourceNode :IDBSearchable
         {
-            var matchQuery = string.Format("startNode-[:{0}]-othernode-[:{0}]-otherStartNodes", GetRootTypeKey());
+            var matchQuery = string.Format("startNodes-[:{0}]-othernode-[:{0}]-otherStartNodes", typeKey);
 
             return 
                 startingNode
-                .StartCypher("startNode")
-                .Match(matchQuery)
-                //.Where<TSourceNode, TSourceNode>((otherStartNodes, startNode) => otherStartNodes.Id != startNode.Id)                
-                .Where("startNode.Id <> otherStartNodes.Id")
-                .Return<TSourceNode>("otherStartNodes").Results;                        
-
-            //
+                    .StartCypher("startNodes")
+                    .Match(matchQuery)
+                    .Where<TSourceNode, TSourceNode>((startNodes, otherStartNodes) => startNodes.Id != otherStartNodes.Id)                                    
+                    .Return<TSourceNode>("otherStartNodes").Results;                                    
         }
         
         private NodeReference GetNode( object identifier, bool searchSource)
@@ -171,11 +168,8 @@ namespace Neo4jClientRepository
         public IEnumerable<TResult> GetRelated<TResult>(NodeReference node)
         {
             if (node == null) throw new ArgumentNullException("node");
-            var matchText = string.Format("source-[:{0}]-targets", TypeKeyRelatingNodes());            
-            var results = node.StartCypher("source").Match(matchText).ReturnDistinct<TResult>("targets");
-
-            var query = results.Query.QueryText;
-            return results.Results.ToList();
+            var matchText = string.Format("source-[:{0}]-targets", TypeKeyRelatingNodes());
+            return node.StartCypher("source").Match(matchText).ReturnDistinct<TResult>("targets").Results.ToList();                        
         }
 
         public IEnumerable<RelationshipInstance<TData>> GetRelationships<TData>() where TData : class, new()
@@ -203,12 +197,7 @@ namespace Neo4jClientRepository
         {
             return searchCode + GetRootTypeKey();
         }
-
-        private string GetCacheKey(long id)
-        {
-            return id + GetRootTypeKey();
-        }
-
+      
         private TRelationship GetRelatedRelationship(Node<TTargetNode> target)
         {
             return _relationshipManager.GetRelationshipObject<TRelationship>(typeof(TNode), typeof(TTargetNode), target.Reference);
@@ -219,7 +208,7 @@ namespace Neo4jClientRepository
             return _relationshipManager.GetRelationshipObject<TRelationship, TData>(typeof(TNode), typeof(TTargetNode), target.Reference, properties, typeof(TData));
         }
 
-        private string GetRootTypeKey()
+        public string GetRootTypeKey()
         {
             return _relationshipManager.GetTypeKey(typeof(TNode), typeof(TTargetNode));
         }

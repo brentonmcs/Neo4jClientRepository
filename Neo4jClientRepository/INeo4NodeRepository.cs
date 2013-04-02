@@ -13,6 +13,9 @@ namespace Neo4jClientRepository
         Node<TResult> GetByItemCode<TResult>(string value) where TResult : class;
         IEnumerable<TResult> GetAll<TResult>();
 
+        Type GetTargetType();
+        Type GetSourceType();
+
                
         Node<TResult> GetNodeReferenceById<TResult>(long id) where TResult : class;
         TResult GetByTree<TResult>(Expression<Func<TResult, bool>> filter);

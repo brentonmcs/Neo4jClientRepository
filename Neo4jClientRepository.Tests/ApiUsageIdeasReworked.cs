@@ -23,13 +23,13 @@ namespace Neo4jClientRepository.Tests
 
             INeo4jRelationshipManager relationshipManager = new Neo4jRelationshipManager();
 
-            var idRepoService = new IdRepoService(graph,relationshipManager);
+            var idRepoService = new IdRepoService(graph,relationshipManager, null );
             var idGenerator = new IDGenerator();
             
             idGenerator.LoadGenerator(50);
-            var storageLocationService = new Neo4NodeRepository<OwnedBy>(graph, relationshipManager,idGenerator, "Name");
+            var storageLocationService = new Neo4NodeRepository<OwnedBy>(graph, relationshipManager,idGenerator, "Name", null );
 
-            var partsAndProductService = new Neo4NodeRepository<StoredIn>(graph, relationshipManager,idGenerator, "Name");            
+            var partsAndProductService = new Neo4NodeRepository<StoredIn>(graph, relationshipManager, idGenerator, "Name", null);            
 
             var frameStore = storageLocationService.UpdateOrInsert(new StorageLocation {Name = "Frame Store"},null);
 
