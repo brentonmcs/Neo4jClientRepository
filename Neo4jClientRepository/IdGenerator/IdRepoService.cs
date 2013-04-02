@@ -1,4 +1,5 @@
-﻿using Neo4jClient;
+﻿using CacheController;
+using Neo4jClient;
 using Neo4jClientRepository.RelationshipManager;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,19 +17,21 @@ namespace Neo4jClientRepository.IdGenerator
     {
         private readonly IGraphClient _graphClient;
         private readonly INeo4jRelationshipManager _relationshipManager;
+        private readonly ICachingService _cachingService;
         private Neo4NodeRepository<IDGeneratorGroupNodes> _idRepo;
         private bool _isLoaded;
 
-        public IdRepoService(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager)            
+        public IdRepoService(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, ICachingService cachingService)            
         {
             _graphClient = graphClient;
             _relationshipManager = relationshipManager;
             _isLoaded = false;
+            _cachingService = cachingService;
         }
 
         public void InitialiseIdRepoService(IIDGenerator idGenerator )
         {
-            _idRepo = new Neo4NodeRepository<IDGeneratorGroupNodes>(_graphClient, _relationshipManager, idGenerator,string.Empty, GetIdReferenceNode());
+            _idRepo = new Neo4NodeRepository<IDGeneratorGroupNodes>(_graphClient, _relationshipManager, idGenerator, string.Empty, GetIdReferenceNode(), _cachingService);
             _isLoaded = true;
         }
 
