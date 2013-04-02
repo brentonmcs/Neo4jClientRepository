@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CacheController;
 using Neo4jClientRepository.RelationshipManager;
+using Neo4jClient.Cypher;
 
 namespace Neo4jClientRepository
 {
@@ -57,11 +58,12 @@ namespace Neo4jClientRepository
         }
 
         
-        public void AddRelatedRelationship<TData>(Node<TNode> source, Node<TTargetNode> target, TData properties) where TData : class, new()
+        public void AddRelatedRelationship<TData>(Node<TNode> source, Node<TTargetNode> target, TData properties) 
+                        where TData : class,IPayload, new()
         {
             if (source == null) throw new ArgumentNullException("source");
             if (target == null) throw new ArgumentNullException("target");
-            if (MultiplesCheck<TData>(source, target)) return;
+            if (MultiplesCheck(source, target, properties)) return;
 
             _graphClient.CreateRelationship(source.Reference, GetRelatedRelationship(target, properties));
 
@@ -70,7 +72,7 @@ namespace Neo4jClientRepository
         }
 
         public void AddRelatedRelationship<TData>(string source, string target, TData properties)
-            where TData : class, new()
+            where TData : class, IPayload, new()
         {
             AddRelatedRelationship(_sourceDataSource.GetByItemCode<TNode>(source),
                                    _targetDataSource.GetByItemCode<TTargetNode>(target), properties);
@@ -222,33 +224,51 @@ namespace Neo4jClientRepository
             return _relationshipManager.GetTypeKey(typeof(TNode), typeof(TTargetNode));
         }
 
-        private static string GetSourceRootKey()
+        private  string GetSourceRootKey()
         {
-            //return _relationshipManager.GetTypeKey()
-            return "";
-            //TODO Need to fix this...
+            //TODO Need to fix this to work with Source Nodes not tied to the root
+            return _relationshipManager.GetTypeKey(typeof(TNode), typeof( RootNode));
         }
 
         private bool MultiplesCheck(Node<TNode> source, Node<TTargetNode> target)
         {
-            return (!AllowMultipleRelationships) && (RelationshipExists(source.Reference, target.Data));
+            return (!AllowMultipleRelationships) && (GetMultipleCount(GetMultipesQuery(source.Reference, target.Data)));
+        }
+        private bool MultiplesCheck<TData>(Node<TNode> source, Node<TTargetNode> target, TData payload = null) where TData : class,IPayload, new()
+        {
+            return (!AllowMultipleRelationships) && (RelationshipExists(source.Reference, target.Data, payload));
         }
 
-        private bool MultiplesCheck<TData>(Node<TNode> source, Node<TTargetNode> target) where TData : class, new()
+        private bool RelationshipExists<TData>(NodeReference node, TTargetNode target, TData payload = null) where TData : class,IPayload, new()
         {
-            return (!AllowMultipleRelationships) && (RelationshipExists(source.Reference, target.Data, typeof(TData)));
+            var result = GetMultipesQuery(node, target, typeof(TData));
+
+            if (payload != null)
+                result = result.Where<TData>(r => r.Compare(payload));
+
+            return GetMultipleCount(result);           
         }
 
-        private bool RelationshipExists(NodeReference<TNode> node, TTargetNode target, Type payload = null)
+        private static bool GetMultipleCount(ICypherFluentQuery result)
         {
-            return node                
-                   .Out(TypeKeyRelatingNodes(payload),FilterQuery(target))
-                   .GremlinCount() > 0;
+            return result.Return<int>("count(*)").Results.SingleOrDefault() > 0;
+        }
+
+        private ICypherFluentQuery GetMultipesQuery(NodeReference node, TTargetNode target, Type payloadType = null )
+        {
+            var match = string.Format("n-[r:{0}]-p", TypeKeyRelatingNodes(payloadType));
+            var result =
+                    node
+                   .StartCypher("n")
+                   .Match(match)
+                   .Where("p.id = " + target.Id);
+            return result;
         }
 
         private static Expression<Func<TTargetNode, bool>> FilterQuery(TTargetNode target)
         {
             return x=>x.Id ==  target.Id;
+           
         }
       
         private string TypeKeyRelatingNodes(Type payload = null)
