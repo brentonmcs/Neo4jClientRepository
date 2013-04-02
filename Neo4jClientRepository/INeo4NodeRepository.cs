@@ -10,6 +10,7 @@ namespace Neo4jClientRepository
     {
         TResult GetByIndex<TResult>(string key, object value, Type indexType) where TResult : class;
         TResult GetById<TResult>(long id) where TResult : class;
+        
         Node<TResult> GetByItemCode<TResult>(string value) where TResult : class;
         IEnumerable<TResult> GetAll<TResult>();
 
