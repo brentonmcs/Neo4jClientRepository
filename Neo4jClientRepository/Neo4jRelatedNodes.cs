@@ -1,6 +1,4 @@
-﻿using System.Linq.Expressions;
-using Neo4jClient;
-using Neo4jClient.Gremlin;
+﻿using Neo4jClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -172,7 +170,7 @@ namespace Neo4jClientRepository
             return node.StartCypher("source").Match(matchText).ReturnDistinct<TResult>("targets").Results.ToList();                        
         }
 
-        public IEnumerable<RelationshipInstance<TData>> GetRelationships<TData>() where TData : class, new()
+        public IEnumerable<RelationshipInstance<TData>> GetRelationships<TData>() where TData : class, IPayload, new()
         {
             var relatedTypeKey = TypeKeyRelatingNodes(typeof(TData));
 
@@ -208,9 +206,10 @@ namespace Neo4jClientRepository
             return _relationshipManager.GetRelationshipObject<TRelationship, TData>(typeof(TNode), typeof(TTargetNode), target.Reference, properties, typeof(TData));
         }
 
-        public string GetRootTypeKey()
+        public string GetRootTypeKey(Type payload = null ) //TODO: should be able to know if the relationship has a payload!
         {
-            return _relationshipManager.GetTypeKey(typeof(TNode), typeof(TTargetNode));
+
+            return _relationshipManager.GetTypeKey(typeof(TNode), typeof(TTargetNode), payload);
         }
 
         private  string GetSourceRootKey()
@@ -233,7 +232,10 @@ namespace Neo4jClientRepository
             var result = GetMultipesQuery(node, target, typeof(TData));
 
             if (payload != null)
-                result = result.Where<TData>(r => r.Compare(payload));
+            {
+                var payloadStr = string.Format("r.{0} = '{1}'", payload.CompareName(), payload.CompareValue());
+                result = result.AndWhere(payloadStr);
+            }
 
             return GetMultipleCount(result);           
         }
@@ -250,16 +252,10 @@ namespace Neo4jClientRepository
                     node
                    .StartCypher("n")
                    .Match(match)
-                   .Where("p.id = " + target.Id);
+                   .Where("p.Id = " + target.Id);
             return result;
         }
-
-        private static Expression<Func<TTargetNode, bool>> FilterQuery(TTargetNode target)
-        {
-            return x=>x.Id ==  target.Id;
-           
-        }
-      
+              
         private string TypeKeyRelatingNodes(Type payload = null)
         {            
             return _relationshipManager.GetTypeKey(typeof(TNode), typeof(TTargetNode), payload);
