@@ -1,13 +1,13 @@
 ﻿using Neo4jClient;
 
-namespace Neo4jClientRepository.IdGenerator
+namespace Neo4jClientRepository.IdGen
 {
-    public class IDGeneratorRefNodeRelationship :
+    public class IdGeneratorRefNodeRelationship :
         Relationship,
         IRelationshipAllowingSourceNode<RootNode>,
         IRelationshipAllowingTargetNode<IdReferenceNode>
     {
-        public IDGeneratorRefNodeRelationship(NodeReference targetNode)
+        public IdGeneratorRefNodeRelationship(NodeReference targetNode)
             : base(targetNode)
         {
 

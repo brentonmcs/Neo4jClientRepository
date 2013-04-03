@@ -1,7 +1,10 @@
 ﻿using System;
 
-namespace Neo4jClientRepository.IdGenerator
+// ReSharper disable CheckNamespace
+namespace Neo4jClientRepository.IdGen
+// ReSharper restore CheckNamespace
 {
+    [Serializable]
     public class NotLoadedException : Exception
     {
         public NotLoadedException(string message)

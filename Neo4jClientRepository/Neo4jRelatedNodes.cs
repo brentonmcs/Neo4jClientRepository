@@ -19,12 +19,12 @@ namespace Neo4jClientRepository
 
         private readonly IGraphClient _graphClient;
         private readonly INeo4jRelationshipManager _relationshipManager;
-        private readonly INeo4NodeRepository _sourceDataSource;
-        private readonly INeo4NodeRepository _targetDataSource;
+        private readonly INeo4NodeRepository<TNode> _sourceDataSource;
+        private readonly INeo4NodeRepository<TTargetNode> _targetDataSource;
         private readonly ICachingService _cachingService;
 
         public Neo4jRelatedNodes(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager,
-                                 INeo4NodeRepository sourceDataSource, INeo4NodeRepository targetDataSource,
+                                 INeo4NodeRepository<TNode> sourceDataSource, INeo4NodeRepository<TTargetNode> targetDataSource,
                                  ICachingService cachingService)
         {
             _graphClient = graphClient;
@@ -37,10 +37,24 @@ namespace Neo4jClientRepository
 
         public void AddRelatedRelationship(string sourceCode, string targetCode)
         {
-            AddRelatedRelationship(_sourceDataSource.GetByItemCode<TNode>(sourceCode), _targetDataSource.GetByItemCode<TTargetNode>(targetCode));
+            AddRelatedRelationship(_sourceDataSource.GetNodeByItemCode(sourceCode), _targetDataSource.GetNodeByItemCode(targetCode));
         }
 
-       
+
+        public void AddRelatedRelationship(long sourceId, long targetId)
+        {
+            var sourceNode = _sourceDataSource.GetNodeReferenceById(sourceId);
+            var targetNode = _targetDataSource.GetNodeReferenceById(targetId);
+            AddRelatedRelationship(sourceNode, targetNode);
+        }
+
+        public void AddRelatedRelationship<TData>(long sourceId, long targetId, TData properties) where TData : class, IPayload, new()
+        {
+            var sourceNode = _sourceDataSource.GetNodeReferenceById(sourceId);
+            var targetNode = _targetDataSource.GetNodeReferenceById(targetId);
+            AddRelatedRelationship(sourceNode, targetNode, properties);
+        }
+
         public void AddRelatedRelationship(Node<TNode> source, Node<TTargetNode> target)
         {
             if (source == null) throw new ArgumentNullException("source");
@@ -55,6 +69,8 @@ namespace Neo4jClientRepository
                 _cachingService.DeleteCache(GetCacheKey(_sourceDataSource));
         }
 
+
+       
         
         public void AddRelatedRelationship<TData>(Node<TNode> source, Node<TTargetNode> target, TData properties) 
                         where TData : class,IPayload, new()
@@ -72,8 +88,8 @@ namespace Neo4jClientRepository
         public void AddRelatedRelationship<TData>(string source, string target, TData properties)
             where TData : class, IPayload, new()
         {
-            AddRelatedRelationship(_sourceDataSource.GetByItemCode<TNode>(source),
-                                   _targetDataSource.GetByItemCode<TTargetNode>(target), properties);
+            AddRelatedRelationship(_sourceDataSource.GetNodeByItemCode(source),
+                                   _targetDataSource.GetNodeByItemCode(target), properties);
         }
 
         public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(Node<TSourceNode> node) where TSourceNode : class, IDBSearchable, new()
@@ -88,12 +104,12 @@ namespace Neo4jClientRepository
             return _cachingService.Cache(GetCacheKey(relatedCode), 1000, new Func<string, bool, IEnumerable<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), relatedCode, searchSource) as IEnumerable<Node<TSourceNode>>;
         }
 
-        public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(long id, bool searchSource) where TSourceNode : class, IDBSearchable, new()                                    
+        public IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(long id, bool searchSource) where TSourceNode : class, IDBSearchable, new()
         {
-            //return
-            //    _cachingService.Cache(GetCacheKey(id), 1000, new Func<int, IEnumerable<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>), id) as IEnumerable<Node<TSourceNode>>
-
-            return GetRelatedNodes<TSourceNode>(id, searchSource);
+            return
+                _cachingService.Cache(GetCacheKey(id), 1000,
+                                      new Func<long, bool, IEnumerable<Node<TSourceNode>>>(GetRelatedNodes<TSourceNode>),
+                                      id, searchSource) as IEnumerable<Node<TSourceNode>>;
         }
 
         public IEnumerable<Node<TSourceNode>> GetRelatedNodes<TSourceNode>(string relatedCode, bool searchSource) where TSourceNode : class, IDBSearchable, new()
@@ -114,14 +130,17 @@ namespace Neo4jClientRepository
         {
             var matchQuery = string.Format("startNodes-[:{0}]-othernode-[:{0}]-otherStartNodes", typeKey);
 
+            if (startingNode == null)
+                throw new ArgumentNullException("startingNode");
+
             return 
-                startingNode
-                    .StartCypher("startNodes")
-                    .Match(matchQuery)
-                    .Where<TSourceNode, TSourceNode>((startNodes, otherStartNodes) => startNodes.Id != otherStartNodes.Id)                                    
-                    .Return<TSourceNode>("otherStartNodes").Results;                                    
+                    startingNode
+                        .StartCypher("startNodes")
+                        .Match(matchQuery)
+                        .Where<TSourceNode, TSourceNode>((startNodes, otherStartNodes) => startNodes.Id != otherStartNodes.Id)                                    
+                        .Return<TSourceNode>("otherStartNodes").Results;
         }
-        
+
         private NodeReference GetNode( object identifier, bool searchSource)
         {
             var identifierStr = string.Empty;
@@ -135,16 +154,16 @@ namespace Neo4jClientRepository
             if (searchSource)
             {
                 if (!string.IsNullOrEmpty( identifierStr))
-                    return _sourceDataSource.GetByItemCode<TNode>(identifierStr).Reference;
+                    return _sourceDataSource.GetNodeByItemCode(identifierStr).Reference;
                 if (idenitiferLong >= 0)
-                    return _sourceDataSource.GetNodeReferenceById<TNode>(idenitiferLong).Reference;
+                    return _sourceDataSource.GetNodeReferenceById(idenitiferLong).Reference;
                 throw new InvalidSourceNodeException();
             }
 
             if (!string.IsNullOrEmpty(identifierStr))
-                return _targetDataSource.GetByItemCode<TTargetNode>(identifierStr).Reference;
+                return _targetDataSource.GetNodeByItemCode(identifierStr).Reference;
             if (idenitiferLong > 0)
-                return _targetDataSource.GetNodeReferenceById<TTargetNode>(idenitiferLong).Reference;
+                return _targetDataSource.GetNodeReferenceById(idenitiferLong).Reference;
 
             throw new InvalidSourceNodeException();
 
@@ -186,12 +205,18 @@ namespace Neo4jClientRepository
                 .ToList();
         }
 
-        private string GetCacheKey(INeo4NodeRepository source)
+        private string GetCacheKey(INeo4NodeRepository<TNode> source)
         {
             return GetCacheKey(source.ItemCodeIndexName);
         }
 
         private string GetCacheKey(string searchCode)
+        {
+            return searchCode + GetRootTypeKey();
+        }
+
+
+        private string GetCacheKey(long searchCode)
         {
             return searchCode + GetRootTypeKey();
         }
@@ -248,12 +273,8 @@ namespace Neo4jClientRepository
         private ICypherFluentQuery GetMultipesQuery(NodeReference node, TTargetNode target, Type payloadType = null )
         {
             var match = string.Format("n-[r:{0}]-p", TypeKeyRelatingNodes(payloadType));
-            var result =
-                    node
-                   .StartCypher("n")
-                   .Match(match)
-                   .Where("p.Id = " + target.Id);
-            return result;
+            var where = string.Format("p.Id = {0}", target.Id);
+            return node.StartCypher("n").Match(match).Where(where);            
         }
               
         private string TypeKeyRelatingNodes(Type payload = null)
@@ -271,6 +292,9 @@ namespace Neo4jClientRepository
 
 
 
-       
+
+
+
+
     }
 }

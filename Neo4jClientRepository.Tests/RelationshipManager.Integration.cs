@@ -1,6 +1,6 @@
 ﻿
 using Neo4jClient;
-using Neo4jClientRepository.IdGenerator;
+using Neo4jClientRepository.IdGen;
 using Neo4jClientRepository.RelationshipManager;
 using Neo4jClientRepository.Tests.Domain;
 using Neo4jClientRepository.Tests.Relationships;
@@ -14,7 +14,7 @@ namespace Neo4jClientRepository.Tests
     {
         GraphClient _graphClient;
         Neo4jRelationshipManager _relationshipManager;
-        Neo4NodeRepository<OwnedBy> _ownedByService;
+        Neo4NodeRepository<StorageLocation,OwnedBy> _ownedByService;
 
         Node<StorageLocation> _initialAddRef;
         [SetUp]
@@ -35,10 +35,10 @@ namespace Neo4jClientRepository.Tests
             }
 
             _relationshipManager = new Neo4jRelationshipManager();
-            var idRepoService = new IdRepoService(_graphClient, _relationshipManager, null);
-            var idGenerator = new IDGenerator {IDRepoService = idRepoService};
+            var idRepoService = new IidRepoService(_graphClient, _relationshipManager, null);
+            var idGenerator = new IdGenerator {IidRepoService = idRepoService};
             idGenerator.LoadGenerator(50);
-            _ownedByService = new Neo4NodeRepository<OwnedBy>(_graphClient, _relationshipManager, idGenerator, "Name", null);
+            _ownedByService = new Neo4NodeRepository<StorageLocation,OwnedBy>(_graphClient, _relationshipManager, idGenerator, "Name", null);
 
             _initialAddRef = _ownedByService.UpdateOrInsert(new StorageLocation { Id = 1, Name = "Main WH" }, _graphClient.RootNode);
   
@@ -58,7 +58,7 @@ namespace Neo4jClientRepository.Tests
         public void TestGetByIndex()
         {
 
-            var location = _ownedByService.GetByIndex<StorageLocation>("Name", "Main WH",null);
+            var location = _ownedByService.GetByIndex("Name", "Main WH",null);
 
             Assert.NotNull(location);
             Assert.AreEqual(1, location.Id);
@@ -70,7 +70,7 @@ namespace Neo4jClientRepository.Tests
         [TestCase]
         public void GetByName()
         {
-            var location = _ownedByService.GetById<StorageLocation>(1);
+            var location = _ownedByService.GetById(1);
             Assert.NotNull(location);
             Assert.AreEqual(1, location.Id);
 
@@ -83,15 +83,15 @@ namespace Neo4jClientRepository.Tests
 
             _ownedByService.UpdateOrInsert(new StorageLocation { Id = 2, Name = "Second Warehouse 2" }, _graphClient.RootNode);
 
-            var location = _ownedByService.GetById<StorageLocation>(2);
+            var location = _ownedByService.GetById(2);
 
             Assert.NotNull(location);
             Assert.AreEqual("Second Warehouse 2", location.Name);
 
-            var refNode = _ownedByService.GetNodeReferenceById<StorageLocation>(2);
+            var refNode = _ownedByService.GetNodeReferenceById(2);
             _ownedByService.DeleteNode(refNode.Reference);
 
-            location = _ownedByService.GetById<StorageLocation>(2);
+            location = _ownedByService.GetById(2);
             Assert.IsNull(location);
             
         }
@@ -101,7 +101,7 @@ namespace Neo4jClientRepository.Tests
         {
             _ownedByService.UpdateOrInsert(new StorageLocation {  Name = "Second Warehouse" }, _graphClient.RootNode);
 
-            var location = _ownedByService.GetByTree<StorageLocation>(node => node.Name == "Second Warehouse");
+            var location = _ownedByService.GetByTree(node => node.Name == "Second Warehouse");
 
 
         }
@@ -109,7 +109,7 @@ namespace Neo4jClientRepository.Tests
         [TestCase]
         public void GetByTreeSearch()
         {
-            var location = _ownedByService.GetByTree<StorageLocation>(node => node.Name == "Main WH");
+            var location = _ownedByService.GetByTree(node => node.Name == "Main WH");
 
            Assert.NotNull(location);
            Assert.AreEqual(1, location.Id);
@@ -119,7 +119,8 @@ namespace Neo4jClientRepository.Tests
         [TearDown]
         public void Destroy()
         {
-            var refNode = _ownedByService.GetNodeReferenceById<StorageLocation>(1);
+            if (_ownedByService == null) return;
+            var refNode = _ownedByService.GetNodeReferenceById(1);
 
             if (refNode != null)
                 _ownedByService.DeleteNode(refNode.Reference);

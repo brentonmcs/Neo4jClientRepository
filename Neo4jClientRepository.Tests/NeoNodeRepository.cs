@@ -19,7 +19,7 @@ namespace Neo4jClientRepository.Tests
         private IGraphClient _graphClient;
 
         private INeo4jRelatedNodes<Part, Part> _relatedProductService;
-        private INeo4NodeRepository _partRepository;
+        private INeo4NodeRepository<Part> _partRepository;
         private ICachingService _cachingService;
 
         [TestInitialize]
@@ -30,7 +30,7 @@ namespace Neo4jClientRepository.Tests
 
             _cachingService = new CachingService();
 
-            _partRepository = new Neo4NodeRepository<PartRootNodeRelationship>(_graphClient, _relationshipManager, null, "Code", null);
+            _partRepository = new Neo4NodeRepository<Part,PartRootNodeRelationship>(_graphClient, _relationshipManager, null, "Code", null);
             _relatedProductService = new Neo4jRelatedNodes<Part, Part, RelatedParts>(_graphClient, _relationshipManager, _partRepository, _partRepository, _cachingService);
             
         }

@@ -1,39 +1,40 @@
-﻿using Neo4jClient;
+﻿using System.Globalization;
+using Neo4jClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Neo4jClientRepository.IdGenerator;
+using Neo4jClientRepository.IdGen;
 using Neo4jClientRepository.RelationshipManager;
 using CacheController;
 
 namespace Neo4jClientRepository
 {
-    public class Neo4NodeRepository<TRelationship> : INeo4NodeRepository where TRelationship : Relationship
+    public class Neo4NodeRepository<TModel, TRelationship> : INeo4NodeRepository<TModel> 
+        where TRelationship : Relationship
+        where TModel : class,IDBSearchable, new()
     {
         private ICachingService _cachingService;
-        private IIDGenerator _idGenerator;
+        private IIdGenerator _idGenerator;
         private IGraphClient _graphClient;
         private INeo4jRelationshipManager _relationshipManager;
         private NodeReference _referenceNode;
 
-        private Type SourceType { get; set; }
-        private Type TargetType { get; set; }
         protected Type Relationship { get; set; }
 
-        public Neo4NodeRepository(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, IIDGenerator idGenerator, string indexSerchCode, ICachingService cachingService)
+        public Neo4NodeRepository(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, IIdGenerator idGenerator, string indexSearchCode, ICachingService cachingService)
         {
         
-            Init(graphClient, relationshipManager, null, indexSerchCode, idGenerator, cachingService);
+            Init(graphClient, relationshipManager, null, indexSearchCode, idGenerator, cachingService);
         }
 
-        public Neo4NodeRepository(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, IIDGenerator idGenerator,  string indexSerchCode, NodeReference referenceNode, ICachingService cachingService)
+        public Neo4NodeRepository(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, IIdGenerator idGenerator,  string indexSearchCode, NodeReference referenceNode, ICachingService cachingService)
         {
-            Init(graphClient, relationshipManager, referenceNode, indexSerchCode, idGenerator, cachingService);
+            Init(graphClient, relationshipManager, referenceNode, indexSearchCode, idGenerator, cachingService);
         }
 
-        private void Init(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, NodeReference referenceNode, string indexSerchCode, IIDGenerator idGenerator, ICachingService cachingService)
+        private void Init(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, NodeReference referenceNode, string indexSerchCode, IIdGenerator idGenerator, ICachingService cachingService)
         {
             
             if (graphClient == null) throw new ArgumentNullException("graphClient");
@@ -55,67 +56,79 @@ namespace Neo4jClientRepository
             
         }
 
-        public TResult GetByIndex<TResult>(string key, object value, Type indexType) where TResult : class 
+        public TModel GetByIndex(string key, object value, Type indexType)
         {
-            if (!_graphClient.CheckIndexExists(GetIndexName<TResult>(indexType), IndexFor.Node))
+            return GetByIndexGeneric<TModel>(key,value,indexType);
+        }
+
+        private TResult GetByIndexGeneric<TResult>(string key, object value, Type indexType)
+            where TResult : class
+        {
+            if (!_graphClient.CheckIndexExists(GetIndexName(indexType), IndexFor.Node))
                 return null;
 
-            return 
+            return
                  _graphClient
                  .Cypher
-                 .StartWithNodeIndexLookup("node", GetIndexName<TResult>(indexType), key, value)
+                 .StartWithNodeIndexLookup("node", GetIndexName(indexType), key, value)
                  .Return<TResult>("node")
                  .Results
                  .SingleOrDefault();
+
         }
 
-        private static string GetIndexName<TResult>(Type indexType)
+        private static string GetIndexName(Type indexType)
         {
-            var indexName = typeof(TResult).Name;
+            var indexName = typeof(TModel).Name;
             if (indexType != null)
                 indexName = indexType.Name;
             return indexName;
         }
 
 
-        public TResult GetById<TResult>(long id)
-            where TResult : class 
+        public TModel GetById(long id)
         {
-            return GetByIndex<TResult>("Id", id,null);
+            return GetByIndex("Id", id,null);
         }
 
-        public Node<TResult> GetByItemCode<TResult>(string value) where TResult : class
+        public TModel GetByItemCode(string value)
         {
             var cacheKey = CacheKeyName() + "_" + value;
-         
-            return GetCacheResult( new Func<Node<TResult>>(() => 
-                { return GetByIndex<Node<TResult>>(ItemCodeIndexName, value, null);
-                }), cacheKey)  as Node<TResult>;           
+
+            return GetCacheResult(new Func<TModel>(() => GetByIndex(ItemCodeIndexName, value, null)), cacheKey) as TModel;           
         }
 
-        private string CacheKeyName()
+        public Node<TModel> GetNodeByItemCode(string value)
+        {
+            var cacheKey = CacheKeyName() + "_" + value;
+
+            return GetCacheResult(new Func<Node<TModel>>(() => GetByIndexGeneric<Node<TModel>>(ItemCodeIndexName, value, null)), cacheKey) as Node<TModel>;           
+        }
+
+        public Node<TModel> GetNodeByIndex(string key, object value, Type indexType)
+        {
+            var cacheKey = CacheKeyName() + "_" + key + "_" + value;
+
+            return GetCacheResult(new Func<Node<TModel>>(() => GetByIndexGeneric<Node<TModel>>(key, value, indexType)), cacheKey) as Node<TModel>;           
+        }
+
+        public Node<TModel> GetNodeReferenceById(long id)
+        {
+            return GetCacheResult(new Func<Node<TModel>>(() => GetByIndexGeneric<Node<TModel>>("Id", id, typeof(TModel))), CacheKeyName() + "_" + id.ToString(CultureInfo.InvariantCulture)) as Node<TModel>;
+        }
+
+        private static string CacheKeyName()
         {
             return typeof (TRelationship).Name;
         }
 
-        public Node<TResult> GetNodeReferenceById<TResult>(long id) where TResult : class 
-        {
-            return GetCacheResult(new Func<Node<TResult>>(() =>
-            {
-                return GetByIndex<Node<TResult>>("Id", id, typeof(TResult));
-            })
-            , CacheKeyName() + "_" + id.ToString()) as Node<TResult>;
-        }
-
+        
         private object GetCacheResult(Delegate action, string cacheKey)
         {
-            if (_cachingService != null)
-                return _cachingService.Cache(cacheKey, 1000, action);
-
-            return action.DynamicInvoke();
+            return _cachingService != null ? _cachingService.Cache(cacheKey, 1000, action) : action.DynamicInvoke();
         }
 
-        public TResult GetByTree<TResult>(Expression<Func<TResult, bool>> filter)
+        public TModel GetByTree(Expression<Func<TModel, bool>> filter)
         {
             CheckFilter(filter);
    
@@ -124,7 +137,7 @@ namespace Neo4jClientRepository
                    .StartCypher("root")
                    .Match(_relationshipManager.GetMatchStringToRootForSource(Relationship))
                    .Where(filter)
-                   .Return<TResult>("node")
+                   .Return<TModel>("node")
                    .Results
                    .Single();
         }
@@ -140,17 +153,17 @@ namespace Neo4jClientRepository
         }
 
 
-        public Node<TNode> UpdateOrInsert<TNode>(TNode item, NodeReference linkedItem) where TNode : class,IDBSearchable, new()
+        public Node<TModel> UpdateOrInsert(TModel item, NodeReference linkedItem) 
             
         {
             
-            var existing = GetByIndex<Node<TNode>>("Id", item.Id, typeof(TNode));
+            var existing = GetNodeReferenceById(item.Id);
             
             if (existing == null)
             {
                 if (item.Id == 0)
                     item.Id = _idGenerator.GetNew(item.GetType().Name);
-                var resultNode = _graphClient.Create(item, new[] {GetReferenceToLinkedItem<TNode>(GetLinkedReference(linkedItem))},new[] {GetIndexEntry(item)});
+                var resultNode = _graphClient.Create(item, new[] { GetReferenceToLinkedItem<TModel>(GetLinkedReference(linkedItem)) }, new[] { GetIndexEntry(item) });
                 
                 return _graphClient.Get(resultNode);
 
@@ -211,35 +224,34 @@ namespace Neo4jClientRepository
             _graphClient.Delete(node, DeleteMode.NodeAndRelationships);
         }
 
-        public string GetTypeString()
+        private string GetTypeString()
         {
             return _relationshipManager.GetTypeKey(Relationship);
         }
-        public IEnumerable<TResult> GetAll<TResult>()
+        public IEnumerable<TModel> GetAll()
         {
-            return GetCacheResult(new Func<IEnumerable<TResult>>(
-                () =>
-                {
-                    return 
-                    _referenceNode
-                    .StartCypher("root")
-                    .Match("root-[:" + GetTypeString() + "]-node")
-                    .Return<TResult>("node")
-                    .Results;
-                }), CacheKeyName() + "_ALL") as IEnumerable<TResult>;
+            return GetCacheResult(new Func<IEnumerable<TModel>>(
+                () => _referenceNode
+                          .StartCypher("root")
+                          .Match("root-[:" + GetTypeString() + "]-node")
+                          .Return<TModel>("node")
+                          .Results), CacheKeyName() + "_ALL") as IEnumerable<TModel>;
         }
 
         public string ItemCodeIndexName { get; private set; }
 
 
-        public Type GetTargetType()
-        {
-            return TargetType;
-        }
+        public Type TargetType { get; private set; }
+        public Type SourceType { get; private set; }
 
-        public Type GetSourceType()
-        {
-            return SourceType;
-        }
+
+        
+
+
+
+
+
+
+        
     }
 }

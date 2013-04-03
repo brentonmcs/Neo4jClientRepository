@@ -65,14 +65,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="IdGenerator\IDGenerator.cs" />
-    <Compile Include="IdGenerator\IdRepoService.cs" />
-    <Compile Include="IdGenerator\Nodes\IDGeneratorGroupNodes.cs" />
-    <Compile Include="IdGenerator\Nodes\IdGeneratorNode.cs" />
-    <Compile Include="IdGenerator\Nodes\IDGeneratorRefNodeRelationship.cs" />
-    <Compile Include="IdGenerator\Nodes\IdReferenceNode.cs" />
-    <Compile Include="IdGenerator\IIdGenerator.cs" />
-    <Compile Include="IdGenerator\Exceptions\NotLoadedException.cs" />
+    <Compile Include="IdGen\IIdRepoService.cs" />
+    <Compile Include="IdGen\Nodes\IDGeneratorGroupNodes.cs" />
+    <Compile Include="IdGen\Nodes\IdGeneratorNode.cs" />
+    <Compile Include="IdGen\Nodes\IDGeneratorRefNodeRelationship.cs" />
+    <Compile Include="IdGen\Nodes\IdReferenceNode.cs" />
+    <Compile Include="IdGen\IIdGenerator.cs" />
+    <Compile Include="IdGen\Exceptions\NotLoadedException.cs" />
+    <Compile Include="IdGen\IDGenerator.cs" />
     <Compile Include="INeo4jRelatedNodes.cs" />
     <Compile Include="INeo4NodeRepository.cs" />
     <Compile Include="IDBSearchable.cs" />

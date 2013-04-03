@@ -108,13 +108,15 @@ namespace Neo4jClientRepository.RelationshipManager
             _relationships = new Dictionary<RelationshipContainer, Type>();
 
 
-            var types = AppDomain.CurrentDomain.GetAssemblies().ToList()
-                                 .SelectMany(s => s.GetTypes())
+            var types = AppDomain.CurrentDomain.GetAssemblies()
+                                .Where(x => !x.GetName().Name.Contains("Fakes"))  //Stupid Hack to stop the Fake classes 
+                                .ToList()
+                                 .SelectMany(s => s.GetTypes())                                 
                                  .Where(x => x.IsClass)
                                  .Where(x => x.IsSubclassOf(typeof (Relationship)))
                                  .Where(x => x != typeof (Relationship)); //We don't want the actual Relationship class
+           
 
-            
             foreach (var t in types)
             {
 
@@ -209,10 +211,7 @@ namespace Neo4jClientRepository.RelationshipManager
         {
             var currentTargetType = GetTargetType(currentRelationshipType);
             if (currentSource != currentTargetType) return;
-            var errorString =
-                string.Format(
-                    "Can not build Match cause for cyclic relationship - Source {0}, Target {1}, Relationship {2} ",
-                    currentSource, currentTargetType, currentRelationshipType);
+            var errorString = string.Format("Can not build Match cause for cyclic relationship - Source {0}, Target {1}, Relationship {2} ",currentSource, currentTargetType, currentRelationshipType);
             throw new NotSupportedException(errorString);
         }
 

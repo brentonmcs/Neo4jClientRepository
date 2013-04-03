@@ -1,4 +1,4 @@
-﻿namespace Neo4jClientRepository.IdGenerator
+﻿namespace Neo4jClientRepository.IdGen
 {
     public class IdReferenceNode  
     {

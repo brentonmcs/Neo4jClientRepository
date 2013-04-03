@@ -2,24 +2,28 @@
 using System.Linq;
 using CacheController;
 using Neo4jClient;
-using Neo4jClientRepository.IdGenerator;
+using Neo4jClientRepository.IdGen;
 using Neo4jClientRepository.RelationshipManager;
 
 namespace Neo4jClientRepository
 {
     public interface INodeRepoCreator
     {
-         INeo4NodeRepository CreateNode<TRelationship, TNode>(string itemCode, Type referenceType) 
+        INeo4NodeRepository<TModel> CreateNode<TRelationship, TNode, TModel>(string itemCode, Type referenceType) 
             where TRelationship : Relationship
-            where TNode :   class ,new();
+            where TNode :   class ,new()
+            where TModel :class,IDBSearchable, new();
 
-        INeo4NodeRepository CreateNode<TRelationship>(string itemCode)
-            where TRelationship : Relationship;
+        INeo4NodeRepository<TModel> CreateNode<TRelationship, TModel>(string itemCode)
+            where TRelationship : Relationship
+            where TModel : class,IDBSearchable, new();
 
-        INeo4jRelatedNodes<TSource, TTarget> CreateRelated<TSource, TTarget, TRelationship>(INeo4NodeRepository sourceRepo, INeo4NodeRepository targetRepo = null)
+        INeo4jRelatedNodes<TSource, TTarget> CreateRelated<TSource, TTarget, TRelationship>(
+            INeo4NodeRepository<TSource> sourceRepo, INeo4NodeRepository<TTarget> targetRepo)
             where TSource : class, IDBSearchable, new()
             where TTarget : class, IDBSearchable, new()
             where TRelationship : Relationship, IRelationshipAllowingSourceNode<TSource>;
+
     }
 
     public class NodeRepoCreator : INodeRepoCreator
@@ -27,10 +31,10 @@ namespace Neo4jClientRepository
         private readonly IGraphClient _graphClient;
         private readonly INeo4jRelationshipManager _relationshipManager;
         private readonly ICachingService _cachingService;
-        private readonly IIDGenerator _idGenerator;
+        private readonly IIdGenerator _idGenerator;
 
         public NodeRepoCreator(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager,
-                               ICachingService cachingService, IIDGenerator idGenerator)
+                               ICachingService cachingService, IIdGenerator idGenerator)
         {
             _graphClient = graphClient;
             _relationshipManager = relationshipManager;
@@ -38,32 +42,15 @@ namespace Neo4jClientRepository
             _idGenerator = idGenerator;
         }
 
-        public INeo4NodeRepository CreateNode<TRelationship, TNode>(string itemCode, Type referenceType)
+
+
+        public INeo4NodeRepository<TModel> CreateNode<TRelationship, TModel>(string itemCode)
             where TRelationship : Relationship
-            where TNode :   class ,new()
+            where TModel : class,IDBSearchable, new()
         {
-            return new Neo4NodeRepository<TRelationship>(_graphClient, _relationshipManager, _idGenerator, itemCode, CheckReferenceNode<TNode>(referenceType), _cachingService);
+            return new Neo4NodeRepository<TModel,TRelationship>(_graphClient, _relationshipManager, _idGenerator, itemCode, null, _cachingService);
         }
-
-        public INeo4NodeRepository CreateNode<TRelationship>(string itemCode)
-            where TRelationship : Relationship
-        {
-            return new Neo4NodeRepository<TRelationship>(_graphClient, _relationshipManager, _idGenerator, itemCode, null, _cachingService);
-        }
-
-        public INeo4jRelatedNodes<TSource, TTarget> CreateRelated<TSource, TTarget, TRelationship>(INeo4NodeRepository sourceRepo, INeo4NodeRepository targetRepo = null)
-            where TSource : class, IDBSearchable, new()
-            where TTarget : class, IDBSearchable, new()
-            where TRelationship : Relationship, IRelationshipAllowingSourceNode<TSource>
-        {
-            if (sourceRepo.GetSourceType() != typeof(TSource))
-                throw new RelationshipNotFoundException("Source Repository does not match Source Type");
-
-            if ((targetRepo ?? sourceRepo).GetSourceType() != typeof(TTarget))
-                throw new RelationshipNotFoundException("Target Repository does not match Target Type");
-
-            return new Neo4jRelatedNodes<TSource, TTarget, TRelationship>(_graphClient, _relationshipManager, sourceRepo, targetRepo ?? sourceRepo, _cachingService);
-        }
+      
 
         private NodeReference CheckReferenceNode<TNode>(Type referenceType) where TNode : class ,new()
         {
@@ -89,8 +76,28 @@ namespace Neo4jClientRepository
 
             var referenceRelationship = _relationshipManager.GetRelationshipObjectParticipant<TNode>(typeof(TNode), _graphClient.RootNode.GetType(), _graphClient.RootNode);
             return _graphClient.Create(new TNode(), new[] { referenceRelationship });
-        }      
+        }
 
+        public INeo4NodeRepository<TModel> CreateNode<TRelationship, TNode, TModel>(string itemCode, Type referenceType) 
+            where TRelationship : Relationship where TNode : class, new() 
+            where TModel : class, IDBSearchable, new()
+        {
+            return new Neo4NodeRepository<TModel, TRelationship>(_graphClient, _relationshipManager, _idGenerator, itemCode, CheckReferenceNode<TNode>(referenceType), _cachingService);
+        }
+        
+
+        public INeo4jRelatedNodes<TSource, TTarget> CreateRelated<TSource, TTarget, TRelationship>(
+            INeo4NodeRepository<TSource> sourceRepo, INeo4NodeRepository<TTarget> targetRepo)
+            where TSource : class, IDBSearchable, new() 
+                where TTarget : class, IDBSearchable, new() 
+                where TRelationship : Relationship, IRelationshipAllowingSourceNode<TSource>                 
+        {
+            if (sourceRepo == null) throw new ArgumentNullException("sourceRepo");
+            if (targetRepo == null) throw new ArgumentNullException("targetRepo");
+            return new Neo4jRelatedNodes<TSource, TTarget, TRelationship>(_graphClient, _relationshipManager, sourceRepo,targetRepo , _cachingService);
+        }
+
+     
     }
 
 }

@@ -6,22 +6,26 @@ using Neo4jClient;
 
 namespace Neo4jClientRepository
 {
-    public interface INeo4NodeRepository
+    public interface INeo4NodeRepository<TNode> 
+        where TNode : class,IDBSearchable, new()
     {
-        TResult GetByIndex<TResult>(string key, object value, Type indexType) where TResult : class;
-        TResult GetById<TResult>(long id) where TResult : class;
+        TNode GetByIndex(string key, object value, Type indexType);
+        TNode GetById(long id);
         
-        Node<TResult> GetByItemCode<TResult>(string value) where TResult : class;
-        IEnumerable<TResult> GetAll<TResult>();
+        Node<TNode> GetNodeByItemCode(string value);
+        Node<TNode> GetNodeByIndex(string key, object value, Type indexType);
+        Node<TNode> GetNodeReferenceById(long id);
 
-        Type GetTargetType();
-        Type GetSourceType();
+        IEnumerable<TNode> GetAll();
 
-               
-        Node<TResult> GetNodeReferenceById<TResult>(long id) where TResult : class;
-        TResult GetByTree<TResult>(Expression<Func<TResult, bool>> filter);
+        Type TargetType { get; }
+        Type SourceType { get; }
 
-        Node<TNode> UpdateOrInsert<TNode>(TNode item, NodeReference linkedItem) where TNode : class, IDBSearchable, new();
+
+        
+        TNode GetByTree(Expression<Func<TNode, bool>> filter);
+
+        Node<TNode> UpdateOrInsert(TNode item, NodeReference linkedItem);
         void DeleteNode(NodeReference node);
 
         string ItemCodeIndexName { get;  }

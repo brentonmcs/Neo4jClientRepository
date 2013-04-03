@@ -2,21 +2,21 @@
 using FakeItEasy;
 using NUnit.Framework;
 
-using Neo4jClientRepository.IdGenerator;
+using Neo4jClientRepository.IdGen;
 
 namespace Neo4jClientRepository.Tests
 {
     [TestFixture]
     public class IdGeneratorTests
     {
-        private IDRepoService _repoService;
-        private IIDGenerator _idGenerator;
+        private IIDRepoService _repoService;
+        private IIdGenerator _idGenerator;
         [SetUp]
         public void Init()
         {
-            _repoService = A.Fake<IDRepoService>();
+            _repoService = A.Fake<IIDRepoService>();
 
-            _idGenerator = new IDGenerator {IDRepoService = _repoService};
+            _idGenerator = new IdGenerator {IidRepoService = _repoService};
         }
 
         [Test]
@@ -31,7 +31,7 @@ namespace Neo4jClientRepository.Tests
         public void TestGetOneForNewGroup()
         {
             _idGenerator.LoadGenerator(3);
-            A.CallTo(() => _repoService.GetAll()).Returns(new List<IDGeneratorNode>());
+            A.CallTo(() => _repoService.GetAll()).Returns(new List<IdGeneratorNode>());
             var result = _idGenerator.GetNew("Test");
             Assert.AreEqual(1, result);
         }
@@ -41,9 +41,9 @@ namespace Neo4jClientRepository.Tests
         {
 
 
-            var idList = new List<IDGeneratorNode>
+            var idList = new List<IdGeneratorNode>
                 {
-                    new IDGeneratorNode{ CurrentId = 1, GroupName = "Test"}
+                    new IdGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
             A.CallTo(() => _repoService.GetAll()).Returns(idList);
             _idGenerator.LoadGenerator(3);
@@ -55,9 +55,9 @@ namespace Neo4jClientRepository.Tests
         [Test]
         public void TestTheSecondTimeItGivesNextNumber()
         {
-            var idList = new List<IDGeneratorNode>
+            var idList = new List<IdGeneratorNode>
                 {
-                    new IDGeneratorNode{ CurrentId = 1, GroupName = "Test"}
+                    new IdGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
             A.CallTo(() => _repoService.GetAll()).Returns(idList);
             _idGenerator.LoadGenerator(3);
@@ -70,9 +70,9 @@ namespace Neo4jClientRepository.Tests
         [Test]
         public void TestNewGroupGetsStartingValue()
         {
-            var idList = new List<IDGeneratorNode>
+            var idList = new List<IdGeneratorNode>
                 {
-                    new IDGeneratorNode{ CurrentId = 1, GroupName = "Test"}
+                    new IdGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
             A.CallTo(() => _repoService.GetAll()).Returns(idList);
             _idGenerator.LoadGenerator(3);           
@@ -87,12 +87,12 @@ namespace Neo4jClientRepository.Tests
         [Test]
         public void TestAfterThreeItGetsNewFromCache()
         {
-            var idList = new List<IDGeneratorNode>
+            var idList = new List<IdGeneratorNode>
                 {
-                    new IDGeneratorNode{ CurrentId = 1, GroupName = "Test"}
+                    new IdGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
             A.CallTo(() => _repoService.GetAll()).Returns(idList);
-            A.CallTo(() => _repoService.InitialiseIdRepoService(A<IIDGenerator>.Ignored)).DoesNothing();
+            A.CallTo(() => _repoService.InitialiseIdRepoService(A<IIdGenerator>.Ignored)).DoesNothing();
             _idGenerator.LoadGenerator(3);
             var result = _idGenerator.GetNew("Test");
             Assert.AreEqual(2, result);
@@ -108,9 +108,9 @@ namespace Neo4jClientRepository.Tests
         [Test]
         public void TestReservesCacheInDb()
         {
-            var idList = new List<IDGeneratorNode>
+            var idList = new List<IdGeneratorNode>
                 {
-                    new IDGeneratorNode{ CurrentId = 1, GroupName = "Test"}
+                    new IdGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
             A.CallTo(() => _repoService.GetAll()).Returns(idList);
 
