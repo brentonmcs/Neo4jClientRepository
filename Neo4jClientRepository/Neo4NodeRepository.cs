@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Neo4jClient.Cypher;
 using Neo4jClientRepository.IdGen;
 using Neo4jClientRepository.RelationshipManager;
 using CacheController;
@@ -70,7 +71,8 @@ namespace Neo4jClientRepository
             return
                  _graphClient
                  .Cypher
-                 .StartWithNodeIndexLookup("node", GetIndexName(indexType), key, value)
+                 //.StartWithNodeIndexLookup("node", GetIndexName(indexType), key, value)
+                 .Start(new { node = Node.ByIndexLookup(GetIndexName(indexType),key,value) })
                  .Return<TResult>("node")
                  .Results
                  .SingleOrDefault();
