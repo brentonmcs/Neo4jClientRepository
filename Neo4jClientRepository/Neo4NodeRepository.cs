@@ -68,14 +68,19 @@ namespace Neo4jClientRepository
             if (!_graphClient.CheckIndexExists(GetIndexName(indexType), IndexFor.Node))
                 return null;
 
-            return
-                 _graphClient
-                 .Cypher
-                 //.StartWithNodeIndexLookup("node", GetIndexName(indexType), key, value)
-                 .Start(new { node = Node.ByIndexLookup(GetIndexName(indexType),key,value) })
-                 .Return<TResult>("node")
-                 .Results
-                 .SingleOrDefault();
+            var indexName = GetIndexName(indexType);
+
+            var query =
+                _graphClient
+                    .Cypher
+                    .Start(new {node = Node.ByIndexLookup(indexName, key, value)})
+                    .Return<TResult>("node");
+
+            var queryStr = query.Query.QueryText;
+
+            var result = query.Results.SingleOrDefault();
+
+            return result;
 
         }
 
@@ -116,7 +121,13 @@ namespace Neo4jClientRepository
 
         public Node<TModel> GetNodeReferenceById(long id)
         {
-            return GetCacheResult(new Func<Node<TModel>>(() => GetByIndexGeneric<Node<TModel>>("Id", id, typeof(TModel))), CacheKeyName() + "_" + id.ToString(CultureInfo.InvariantCulture)) as Node<TModel>;
+            var cacheKey = CacheKeyName() + "_" + id.ToString(CultureInfo.InvariantCulture);
+            return GetCacheResult(new Func<Node<TModel>>(() => _GetNodeReferenceById(id)),cacheKey) as Node<TModel>;
+        }
+
+        private Node<TModel> _GetNodeReferenceById(long id)
+        {
+            return GetByIndexGeneric<Node<TModel>>("Id", id, typeof(TModel));
         }
 
         private static string CacheKeyName()
@@ -163,7 +174,7 @@ namespace Neo4jClientRepository
             
             if (existing == null)
             {
-                if (item.Id == 0)
+                if (item.Id == 0 && _idGenerator != null)
                     item.Id = _idGenerator.GetNew(item.GetType().Name);
                 var resultNode = _graphClient.Create(item, new[] { GetReferenceToLinkedItem<TModel>(GetLinkedReference(linkedItem)) }, new[] { GetIndexEntry(item) });
                 

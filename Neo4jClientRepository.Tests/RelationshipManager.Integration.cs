@@ -35,9 +35,15 @@ namespace Neo4jClientRepository.Tests
             }
 
             _relationshipManager = new Neo4jRelationshipManager();
-            var idRepoService = new IidRepoService(_graphClient, _relationshipManager, null);
+            
+            //Chicken and Egg...
+            INodeRepoCreator repoCreator = new NodeRepoCreator(_graphClient,_relationshipManager);
+            var idRepoService = new IidRepoService(repoCreator);
+            
             var idGenerator = new IdGenerator {IidRepoService = idRepoService};
             idGenerator.LoadGenerator(50);
+            repoCreator.IDGenerator = idGenerator;
+
             _ownedByService = new Neo4NodeRepository<StorageLocation,OwnedBy>(_graphClient, _relationshipManager, idGenerator, "Name", null);
 
             _initialAddRef = _ownedByService.UpdateOrInsert(new StorageLocation { Id = 1, Name = "Main WH" }, _graphClient.RootNode);

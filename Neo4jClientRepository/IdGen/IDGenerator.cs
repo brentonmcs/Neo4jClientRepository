@@ -11,6 +11,7 @@ namespace Neo4jClientRepository.IdGen
 
         [Inject]
         public IIDRepoService IidRepoService { get; set; }
+
         private IDictionary<string, IdContainer> _idList;
 
         private const string IdNodeName = "IdGeneratorNode";
@@ -36,9 +37,7 @@ namespace Neo4jClientRepository.IdGen
             //Update ndoes with current plus cache
             _idList = new ConcurrentDictionary<string, IdContainer>();
 
-            var allIds = IidRepoService.GetAll().ToList();
-
-            
+            var allIds = IidRepoService.GetAll().ToList();            
 
             _isLoaded = true;
 
@@ -47,7 +46,6 @@ namespace Neo4jClientRepository.IdGen
                 _idList.Add(id.GroupName, new IdContainer {CurrentValue = id.CurrentId, StartValue = id.CurrentId, Id = id.Id});
                 IidRepoService.CreateOrUpdateIdNode(id.GroupName,id.CurrentId + _cacheSize, id.Id);
             }
-
 
             CreateIdNodeToKeepTrackOfIdsForIds(allIds);
         }

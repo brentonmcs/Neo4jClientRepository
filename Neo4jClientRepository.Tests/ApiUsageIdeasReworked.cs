@@ -23,19 +23,19 @@ namespace Neo4jClientRepository.Tests
 
             INeo4jRelationshipManager relationshipManager = new Neo4jRelationshipManager();
 
-            var idRepoService = new IidRepoService(graph,relationshipManager, null );
-            var idGenerator = new IdGenerator();
+            ////var idRepoService = new IidRepoService(graph,relationshipManager, null );
+            //var idGenerator = new IdGenerator();
             
-            idGenerator.LoadGenerator(50);
-            var storageLocationService = new Neo4NodeRepository<StorageLocation,OwnedBy>(graph, relationshipManager,idGenerator, "Name", null );
+            //idGenerator.LoadGenerator(50);
+            //var storageLocationService = new Neo4NodeRepository<StorageLocation,OwnedBy>(graph, relationshipManager,idGenerator, "Name", null );
 
-            var partsAndProductService = new Neo4NodeRepository<Part,StoredIn>(graph, relationshipManager, idGenerator, "Name", null);            
+            //var partsAndProductService = new Neo4NodeRepository<Part,StoredIn>(graph, relationshipManager, idGenerator, "Name", null);            
 
-            var frameStore = storageLocationService.UpdateOrInsert(new StorageLocation {Name = "Frame Store"},null);
+            //var frameStore = storageLocationService.UpdateOrInsert(new StorageLocation {Name = "Frame Store"},null);
 
-            storageLocationService.UpdateOrInsert(new StorageLocation { Name = "Main Store" }, null);
+            //storageLocationService.UpdateOrInsert(new StorageLocation { Name = "Main Store" }, null);
 
-            partsAndProductService.UpdateOrInsert(new Part { Name = "Frame" }, frameStore.Reference);
+            //partsAndProductService.UpdateOrInsert(new Part { Name = "Frame" }, frameStore.Reference);
 
             //partsAndProductService.UpdateOrInsert(new Product { Name = "Trike", Weight = 2 }, mainStore.Reference);
 
