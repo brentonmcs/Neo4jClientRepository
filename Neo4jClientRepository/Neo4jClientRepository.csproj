@@ -45,12 +45,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\CacheController2.2.2\lib\net45\CacheController.dll</HintPath>
     </Reference>
-    <Reference Include="Neo4jClient, Version=1.0.0.545, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Neo4jClient, Version=1.0.0.547, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Neo4jClient.1.0.0.545\lib\net40\Neo4jClient.dll</HintPath>
+      <HintPath>..\packages\Neo4jClient.1.0.0.547\lib\net40\Neo4jClient.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.5.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Ninject">
       <HintPath>..\packages\Ninject.3.0.1.10\lib\net45-full\Ninject.dll</HintPath>
@@ -65,7 +66,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="IdGen\IIdRepoService.cs" />
     <Compile Include="IdGen\Nodes\IDGeneratorGroupNodes.cs" />
     <Compile Include="IdGen\Nodes\IdGeneratorNode.cs" />
     <Compile Include="IdGen\Nodes\IDGeneratorRefNodeRelationship.cs" />

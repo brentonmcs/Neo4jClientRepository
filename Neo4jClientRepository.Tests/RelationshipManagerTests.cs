@@ -117,10 +117,10 @@ namespace Neo4jClientRepository.Tests
         [ExpectedExceptionAttribute(typeof(RelationshipNotFoundException))]
         public void HandleMultipleSourceTypesNoPayLoadDoesntFind()
         {
-            var source = typeof(Part);
-            var target = typeof(Part);
+            var source = typeof(StorageLocation);
+            var target = typeof(StorageLocation);
 
-            _relationshipManager.GetRelationshipObjectSource<Part>(source, target,0);            
+            _relationshipManager.GetRelationshipObjectSource<StorageLocation>(source, target, 0);            
         }
 
         [TestMethod]

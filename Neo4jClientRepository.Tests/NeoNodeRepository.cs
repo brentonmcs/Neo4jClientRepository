@@ -8,6 +8,7 @@ using Neo4jClientRepository.Tests.Relationships;
 
 using Neo4jClient;
 using Neo4jClientRepository.Tests.Domain;
+using NUnit.Framework;
 
 namespace Neo4jClientRepository.Tests
 {
@@ -75,5 +76,14 @@ namespace Neo4jClientRepository.Tests
             return result.QueryText;
         }
 
+
+        [TearDown]
+        public void TearDown()
+        {
+            var node = _partRepository.GetNodeReferenceById(1);
+
+            if (node !=null)
+                 _partRepository.DeleteNode(node.Reference);
+        }
     }
 }

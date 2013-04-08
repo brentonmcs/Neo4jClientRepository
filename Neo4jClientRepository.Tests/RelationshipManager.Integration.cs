@@ -14,7 +14,7 @@ namespace Neo4jClientRepository.Tests
     {
         GraphClient _graphClient;
         Neo4jRelationshipManager _relationshipManager;
-        Neo4NodeRepository<StorageLocation,OwnedBy> _ownedByService;
+        INeo4NodeRepository<StorageLocation> _ownedByService;
 
         Node<StorageLocation> _initialAddRef;
         [SetUp]
@@ -38,14 +38,12 @@ namespace Neo4jClientRepository.Tests
             
             //Chicken and Egg...
             INodeRepoCreator repoCreator = new NodeRepoCreator(_graphClient,_relationshipManager);
-            var idRepoService = new IidRepoService(repoCreator);
-            
-            var idGenerator = new IdGenerator {IidRepoService = idRepoService};
+
+            var idGenerator = new IdGenerator(repoCreator);
             idGenerator.LoadGenerator(50);
-            repoCreator.IDGenerator = idGenerator;
 
-            _ownedByService = new Neo4NodeRepository<StorageLocation,OwnedBy>(_graphClient, _relationshipManager, idGenerator, "Name", null);
-
+            _ownedByService = repoCreator.CreateNode<OwnedBy, StorageLocation>("Name");
+            
             _initialAddRef = _ownedByService.UpdateOrInsert(new StorageLocation { Id = 1, Name = "Main WH" }, _graphClient.RootNode);
   
         }
@@ -105,7 +103,7 @@ namespace Neo4jClientRepository.Tests
         [TestCase]
         public void TestId()
         {
-            _ownedByService.UpdateOrInsert(new StorageLocation {  Name = "Second Warehouse" }, _graphClient.RootNode);
+            _ownedByService.UpdateOrInsert(new StorageLocation { Id=2, Name = "Second Warehouse" }, _graphClient.RootNode);
 
             var location = _ownedByService.GetByTree(node => node.Name == "Second Warehouse");
 
@@ -130,6 +128,11 @@ namespace Neo4jClientRepository.Tests
 
             if (refNode != null)
                 _ownedByService.DeleteNode(refNode.Reference);
+
+            var warehouse2node = _ownedByService.GetNodeReferenceById(2);
+
+            if (warehouse2node != null)
+                _ownedByService.DeleteNode(warehouse2node.Reference);
         }
 
 

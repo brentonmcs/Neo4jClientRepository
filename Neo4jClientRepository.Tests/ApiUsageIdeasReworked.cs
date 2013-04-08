@@ -17,20 +17,20 @@ namespace Neo4jClientRepository.Tests
 
         private void Foo()
         {
+
             IGraphClient graph = new GraphClient(new Uri(""));
-
-            // Based on http://wiki.neo4j.org/content/Image:Warehouse.png
-
             INeo4jRelationshipManager relationshipManager = new Neo4jRelationshipManager();
+            INodeRepoCreator repoCreator = new NodeRepoCreator(graph, relationshipManager);
 
-            ////var idRepoService = new IidRepoService(graph,relationshipManager, null );
-            //var idGenerator = new IdGenerator();
+            var idGenerator = new IdGenerator(repoCreator);           
+            idGenerator.LoadGenerator(5);
             
-            //idGenerator.LoadGenerator(50);
-            //var storageLocationService = new Neo4NodeRepository<StorageLocation,OwnedBy>(graph, relationshipManager,idGenerator, "Name", null );
 
-            //var partsAndProductService = new Neo4NodeRepository<Part,StoredIn>(graph, relationshipManager, idGenerator, "Name", null);            
+            var storageLocationService = repoCreator.CreateNode<OwnedBy, StorageLocation>("Name");
 
+            var partsAndProductService = repoCreator.CreateNode<StoredIn, Part>("Name");
+            
+            
             //var frameStore = storageLocationService.UpdateOrInsert(new StorageLocation {Name = "Frame Store"},null);
 
             //storageLocationService.UpdateOrInsert(new StorageLocation { Name = "Main Store" }, null);

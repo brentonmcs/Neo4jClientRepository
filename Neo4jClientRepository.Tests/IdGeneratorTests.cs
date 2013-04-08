@@ -9,14 +9,17 @@ namespace Neo4jClientRepository.Tests
     [TestFixture]
     public class IdGeneratorTests
     {
-        private IIDRepoService _repoService;
         private IIdGenerator _idGenerator;
+        private INodeRepoCreator _repoCreator;
+        private INeo4NodeRepository<IdGeneratorNode> _idRepoService;
+      
         [SetUp]
         public void Init()
         {
-            _repoService = A.Fake<IIDRepoService>();
-
-            _idGenerator = new IdGenerator {IidRepoService = _repoService};
+            _repoCreator = A.Fake<INodeRepoCreator>();
+            _idGenerator = new IdGenerator (_repoCreator);
+            _idRepoService= A.Fake<INeo4NodeRepository<IdGeneratorNode>>();
+            A.CallTo(() => _repoCreator.CreateNode<IdGroupNodeRelationship, IdReferenceNode, IdGeneratorNode>("",typeof(IdGeneratorRefNodeRelationship))).Returns(_idRepoService);
         }
 
         [Test]
@@ -31,7 +34,7 @@ namespace Neo4jClientRepository.Tests
         public void TestGetOneForNewGroup()
         {
             _idGenerator.LoadGenerator(3);
-            A.CallTo(() => _repoService.GetAll()).Returns(new List<IdGeneratorNode>());
+            A.CallTo(() => _idRepoService.GetAll()).Returns(new List<IdGeneratorNode>());
             var result = _idGenerator.GetNew("Test");
             Assert.AreEqual(1, result);
         }
@@ -45,7 +48,7 @@ namespace Neo4jClientRepository.Tests
                 {
                     new IdGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
-            A.CallTo(() => _repoService.GetAll()).Returns(idList);
+            A.CallTo(() => _idRepoService.GetAll()).Returns(idList);
             _idGenerator.LoadGenerator(3);
             var result = _idGenerator.GetNew("Test");
             Assert.AreEqual(2, result);
@@ -59,7 +62,7 @@ namespace Neo4jClientRepository.Tests
                 {
                     new IdGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
-            A.CallTo(() => _repoService.GetAll()).Returns(idList);
+            A.CallTo(() => _idRepoService.GetAll()).Returns(idList);
             _idGenerator.LoadGenerator(3);
             var result = _idGenerator.GetNew("Test");
             Assert.AreEqual(2, result);
@@ -74,7 +77,7 @@ namespace Neo4jClientRepository.Tests
                 {
                     new IdGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
-            A.CallTo(() => _repoService.GetAll()).Returns(idList);
+            A.CallTo(() => _idRepoService.GetAll()).Returns(idList);
             _idGenerator.LoadGenerator(3);           
             var result = _idGenerator.GetNew("Test");
             Assert.AreEqual(2, result);
@@ -91,8 +94,7 @@ namespace Neo4jClientRepository.Tests
                 {
                     new IdGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
-            A.CallTo(() => _repoService.GetAll()).Returns(idList);
-            A.CallTo(() => _repoService.InitialiseIdRepoService(A<IIdGenerator>.Ignored)).DoesNothing();
+            A.CallTo(() => _idRepoService.GetAll()).Returns(idList);
             _idGenerator.LoadGenerator(3);
             var result = _idGenerator.GetNew("Test");
             Assert.AreEqual(2, result);
@@ -102,20 +104,43 @@ namespace Neo4jClientRepository.Tests
             Assert.AreEqual(4, result);
             result = _idGenerator.GetNew("Test");
             Assert.AreEqual(5, result);
-            A.CallTo(() => _repoService.CreateOrUpdateIdNode("Test",7,A<long>.Ignored)).MustHaveHappened();
+
+
+            A.CallTo(() => _idRepoService.UpdateOrInsert(GetFakeIdNode2(4, "Test"), null)).MustHaveHappened();
+            
+            A.CallTo(() => _idRepoService.UpdateOrInsert(GetFakeIdNode2(7, "Test"), null)).MustHaveHappened();
         }
+
 
         [Test]
         public void TestReservesCacheInDb()
         {
             var idList = new List<IdGeneratorNode>
                 {
+
                     new IdGeneratorNode{ CurrentId = 1, GroupName = "Test"}
                 };
-            A.CallTo(() => _repoService.GetAll()).Returns(idList);
-
+            A.CallTo(() => _idRepoService.GetAll()).Returns(idList);
+            
+            
             _idGenerator.LoadGenerator(3);
-            A.CallTo(() => _repoService.CreateOrUpdateIdNode("Test", 4, A<long>.Ignored)).MustHaveHappened();
+
+            A.CallTo(() => _idRepoService.UpdateOrInsert(GetFakeIdNode2(4,"Test"), null)).MustHaveHappened();
+        //    A.CallTo(() => _idRepoService.UpdateOrInsert(, null)).MustHaveHappened();
+
+            var genNode = new IdGeneratorNode
+            {
+                GroupName = "IdGeneratorNode",
+                Id = 1,
+                CurrentId = 3
+            };
+        //    A.CallTo(() => _idRepoService.UpdateOrInsert(genNode, null)).MustHaveHappened();
+        
+        }
+
+        private static IdGeneratorNode GetFakeIdNode2(long currentId,string GroupName)
+        {
+            return A<IdGeneratorNode>.That.Matches(x => x.CurrentId == currentId && x.GroupName == GroupName);
         }
 
     }

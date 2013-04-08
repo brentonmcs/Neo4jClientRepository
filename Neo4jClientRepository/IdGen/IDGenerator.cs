@@ -9,9 +9,11 @@ namespace Neo4jClientRepository.IdGen
     {
         private int _cacheSize;
 
-        [Inject]
-        public IIDRepoService IidRepoService { get; set; }
-
+        private readonly INodeRepoCreator _repoCreator;
+    
+        private INeo4NodeRepository<IdGeneratorNode> _idRepoService;
+    
+        
         private IDictionary<string, IdContainer> _idList;
 
         private const string IdNodeName = "IdGeneratorNode";
@@ -25,30 +27,38 @@ namespace Neo4jClientRepository.IdGen
             public long Id { get; set; }
         }
 
-        public IdGenerator()
-        {            
+        public IdGenerator(INodeRepoCreator repoCreator)
+        {
+            _repoCreator = repoCreator;
+
+            //TODO - is this fine?
+            repoCreator.IDGenerator = this;
+
             _isLoaded = false;
         }
 
         public void LoadGenerator(int cacheSize)
         {
-            IidRepoService.InitialiseIdRepoService(this);
+            _idRepoService = _repoCreator.CreateNode<IdGroupNodeRelationship, IdReferenceNode, IdGeneratorNode>("", typeof(IdGeneratorRefNodeRelationship));                                    
+          
             _cacheSize = cacheSize;
             //Update ndoes with current plus cache
             _idList = new ConcurrentDictionary<string, IdContainer>();
 
-            var allIds = IidRepoService.GetAll().ToList();            
+            var allIds = _idRepoService.GetAll().ToList();            
 
             _isLoaded = true;
 
             foreach (var id in allIds)
             {
                 _idList.Add(id.GroupName, new IdContainer {CurrentValue = id.CurrentId, StartValue = id.CurrentId, Id = id.Id});
-                IidRepoService.CreateOrUpdateIdNode(id.GroupName,id.CurrentId + _cacheSize, id.Id);
+                CreateOrUpdateIdNode(id.GroupName, id.CurrentId + _cacheSize, id.Id);
             }
 
             CreateIdNodeToKeepTrackOfIdsForIds(allIds);
         }
+
+
 
         private void CreateIdNodeToKeepTrackOfIdsForIds(IReadOnlyCollection<IdGeneratorNode> allIds)
         {
@@ -56,7 +66,7 @@ namespace Neo4jClientRepository.IdGen
 
             var idNodeIndexId = allIds.Any() ? 1 : allIds.Count + 1;
             _idList.Add(IdNodeName, new IdContainer {CurrentValue = 1, StartValue = 1, Id = idNodeIndexId});
-            IidRepoService.CreateOrUpdateIdNode(IdNodeName, _cacheSize, idNodeIndexId);
+            CreateOrUpdateIdNode(IdNodeName, _cacheSize, idNodeIndexId);
         }
 
         public long GetNew(string groupName)
@@ -68,15 +78,22 @@ namespace Neo4jClientRepository.IdGen
             {
                 var currentContainer = _idList[groupName];
                 if (currentContainer.CurrentValue - currentContainer.StartValue >= _cacheSize)
-                    IidRepoService.CreateOrUpdateIdNode(groupName, currentContainer.CurrentValue + _cacheSize,currentContainer.Id);
+                    CreateOrUpdateIdNode(groupName, currentContainer.CurrentValue + _cacheSize, currentContainer.Id);
 
                 currentContainer.CurrentValue++;
                 return currentContainer.CurrentValue;
             }
 
-            IidRepoService.CreateOrUpdateIdNode(groupName, _cacheSize, GetNew(IdNodeName));
+            CreateOrUpdateIdNode(groupName, _cacheSize, GetNew(IdNodeName));
             _idList.Add(groupName, new IdContainer {CurrentValue = 1, StartValue = 1});
             return 1;
+        }
+
+
+        public void CreateOrUpdateIdNode(string groupName, long newCacheSize, long id)
+        {
+            var repoNode = new IdGeneratorNode { Id = id, CurrentId = newCacheSize, GroupName = groupName };
+            _idRepoService.UpdateOrInsert(repoNode, null);
         }
     }
 }

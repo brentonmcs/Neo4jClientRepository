@@ -2,12 +2,12 @@
 
 namespace Neo4jClientRepository.IdGen
 {
-    public class IdGeneratorGroupNodes :
+    public class IdGroupNodeRelationship :
         Relationship,
         IRelationshipAllowingSourceNode<IdReferenceNode>,
         IRelationshipAllowingTargetNode<IdGeneratorNode>
     {
-        public IdGeneratorGroupNodes(NodeReference targetNode)
+        public IdGroupNodeRelationship(NodeReference targetNode)
             : base(targetNode)
         {
 

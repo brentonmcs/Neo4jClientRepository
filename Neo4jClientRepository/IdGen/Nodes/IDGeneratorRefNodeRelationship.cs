@@ -4,8 +4,8 @@ namespace Neo4jClientRepository.IdGen
 {
     public class IdGeneratorRefNodeRelationship :
         Relationship,
-        IRelationshipAllowingSourceNode<RootNode>,
-        IRelationshipAllowingTargetNode<IdReferenceNode>
+        IRelationshipAllowingSourceNode<IdReferenceNode>,
+        IRelationshipAllowingTargetNode<RootNode>
     {
         public IdGeneratorRefNodeRelationship(NodeReference targetNode)
             : base(targetNode)

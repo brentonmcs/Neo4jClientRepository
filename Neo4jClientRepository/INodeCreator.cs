@@ -66,8 +66,9 @@ namespace Neo4jClientRepository
             if (relationship == null) throw new ArgumentNullException("relationship");
 
             var typeKey = _relationshipManager.GetTypeKey(relationship);
-            var refNode = _graphClient.RootNode
-                        .StartCypher("root")
+            var refNode = _graphClient
+                        .Cypher
+                        .Start(new { root = _graphClient.RootNode })
                         .Match("root-[:" + typeKey + "]-node")
                         .Return<Node<TNode>>("node")
                         .Results
