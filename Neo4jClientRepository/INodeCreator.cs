@@ -7,49 +7,34 @@ using Neo4jClientRepository.RelationshipManager;
 
 namespace Neo4jClientRepository
 {
-    public interface INodeRepoCreator
-    {
-        IIdGenerator IDGenerator { get; set; }
-        ICachingService CachingService { get; set; }
-
-        INeo4NodeRepository<TModel> CreateNode<TRelationship, TNode, TModel>(string itemCode, Type referenceType) 
-            where TRelationship : Relationship
-            where TNode :   class ,new()
-            where TModel :class,IDBSearchable, new();
-
-        INeo4NodeRepository<TModel> CreateNode<TRelationship, TModel>(string itemCode)
-            where TRelationship : Relationship
-            where TModel : class,IDBSearchable, new();
-
-        INeo4jRelatedNodes<TSource, TTarget> CreateRelated<TSource, TTarget, TRelationship>(
-            INeo4NodeRepository<TSource> sourceRepo, INeo4NodeRepository<TTarget> targetRepo)
-            where TSource : class, IDBSearchable, new()
-            where TTarget : class, IDBSearchable, new()
-            where TRelationship : Relationship, IRelationshipAllowingSourceNode<TSource>;
-
-    }
-
     public class NodeRepoCreator : INodeRepoCreator
     {
         private readonly IGraphClient _graphClient;
         private readonly INeo4jRelationshipManager _relationshipManager;
-
-        public  ICachingService CachingService { get; set; }        
+        private readonly ICachingService _cachingService;
+        
         public  IIdGenerator IDGenerator { get; set; }
 
-        public NodeRepoCreator(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager)
+        public NodeRepoCreator(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager, ICachingService cachingService)
         {
             _graphClient = graphClient;
-            _relationshipManager = relationshipManager;                        
+            _relationshipManager = relationshipManager;
+            _cachingService = cachingService;
         }
 
+        public NodeRepoCreator(IGraphClient graph, INeo4jRelationshipManager relationshipManager)
+        {            
+            _graphClient = graph;
+            _relationshipManager = relationshipManager;
+            _cachingService = null;
+        }
         
 
         public INeo4NodeRepository<TModel> CreateNode<TRelationship, TModel>(string itemCode)
             where TRelationship : Relationship
             where TModel : class,IDBSearchable, new()
         {
-            return new Neo4NodeRepository<TModel, TRelationship>(_graphClient, _relationshipManager, IDGenerator, itemCode, null, CachingService);
+            return new Neo4NodeRepository<TModel, TRelationship>(_graphClient, _relationshipManager, IDGenerator, itemCode, null, _cachingService);
         }
       
 
@@ -67,8 +52,8 @@ namespace Neo4jClientRepository
 
             var typeKey = _relationshipManager.GetTypeKey(relationship);
             var refNode = _graphClient
-                        .Cypher
-                        .Start(new { root = _graphClient.RootNode })
+                        .RootNode
+                        .StartCypher("root")                        
                         .Match("root-[:" + typeKey + "]-node")
                         .Return<Node<TNode>>("node")
                         .Results
@@ -84,7 +69,7 @@ namespace Neo4jClientRepository
             where TRelationship : Relationship where TNode : class, new() 
             where TModel : class, IDBSearchable, new()
         {
-            return new Neo4NodeRepository<TModel, TRelationship>(_graphClient, _relationshipManager, IDGenerator, itemCode, CheckReferenceNode<TNode>(referenceType), CachingService);
+            return new Neo4NodeRepository<TModel, TRelationship>(_graphClient, _relationshipManager, IDGenerator, itemCode, CheckReferenceNode<TNode>(referenceType), _cachingService);
         }
         
 
@@ -96,7 +81,7 @@ namespace Neo4jClientRepository
         {
             if (sourceRepo == null) throw new ArgumentNullException("sourceRepo");
             if (targetRepo == null) throw new ArgumentNullException("targetRepo");
-            return new Neo4jRelatedNodes<TSource, TTarget, TRelationship>(_graphClient, _relationshipManager, sourceRepo, targetRepo, CachingService);
+            return new Neo4jRelatedNodes<TSource, TTarget, TRelationship>(_graphClient, _relationshipManager, sourceRepo, targetRepo, _cachingService);
         }
 
      

@@ -70,18 +70,12 @@ namespace Neo4jClientRepository
 
             var indexName = GetIndexName(indexType);
 
-            var query =
+            return 
                 _graphClient
                     .Cypher
                     .Start(new {node = Node.ByIndexLookup(indexName, key, value)})
-                    .Return<TResult>("node");
-
-            var queryStr = query.Query.QueryText;
-
-            var result = query.Results.SingleOrDefault();
-
-            return result;
-
+                    .Return<TResult>("node").Results.SingleOrDefault();
+                     
         }
 
         private static string GetIndexName(Type indexType)
@@ -143,17 +137,28 @@ namespace Neo4jClientRepository
 
         public TModel GetByTree(Expression<Func<TModel, bool>> filter)
         {
+            return _GetByTree<TModel>(filter);
+        }
+       
+        public Node<TModel> GetNodeByTree(Expression<Func<TModel, bool>> filter)
+        {
+            return _GetByTree<Node<TModel>>(filter);
+        }
+
+        private TResult _GetByTree<TResult>(Expression<Func<TModel, bool>> filter)
+            where TResult : class 
+        {
             CheckFilter(filter);
-   
+
             return
                     _referenceNode
-                   .StartCypher("root")
-                   .Match(_relationshipManager.GetMatchStringToRootForSource(Relationship))
-                   .Where(filter)
-                   .Return<TModel>("node")
-                   .Results
-                   .Single();
-        }
+                    .StartCypher("root")
+                    .Match(_relationshipManager.GetMatchStringToRootForSource(Relationship))
+                    .Where(filter)
+                    .Return<TResult>("node")
+                    .Results
+                    .Single();
+        }      
 
         private static void CheckFilter<TResult>(Expression<Func<TResult, bool>> filter)
         {
@@ -164,10 +169,8 @@ namespace Neo4jClientRepository
             if (filter.Parameters.First().Name != "node")
                 throw new NotSupportedException("Lambda expression should use 'node' as the Left parameter (node => node.id == 1)");
         }
-
-
-        public Node<TModel> UpdateOrInsert(TModel item, NodeReference linkedItem) 
-            
+        
+        public Node<TModel> UpdateOrInsert(TModel item, NodeReference linkedItem)             
         {
             
             var existing = GetNodeReferenceById(item.Id);
@@ -256,15 +259,13 @@ namespace Neo4jClientRepository
 
         public Type TargetType { get; private set; }
         public Type SourceType { get; private set; }
-
-
         
 
+        public Node<TModel> UpdateOrInsert(TModel item)
+        {
+            return UpdateOrInsert(item, null);
+        }
 
 
-
-
-
-        
     }
 }

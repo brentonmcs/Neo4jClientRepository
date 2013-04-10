@@ -28,16 +28,28 @@ namespace Neo4jClientRepository.Tests
 
             var storageLocationService = repoCreator.CreateNode<OwnedBy, StorageLocation>("Name");
 
-            var partsAndProductService = repoCreator.CreateNode<StoredIn, Part>("Name");
+            var partsService = repoCreator.CreateNode<StoredIn, Part>("Name");
+            var productService = repoCreator.CreateNode<StoredIn, Product>("Name");
             
-            
-            //var frameStore = storageLocationService.UpdateOrInsert(new StorageLocation {Name = "Frame Store"},null);
+            var frameStore = storageLocationService.UpdateOrInsert(new StorageLocation {Name = "Frame Store"});
+            var mainStore = storageLocationService.UpdateOrInsert(new StorageLocation { Name = "Main Store" });
 
-            //storageLocationService.UpdateOrInsert(new StorageLocation { Name = "Main Store" }, null);
+            storageLocationService.UpdateOrInsert(new StorageLocation { Name = "Main Store" });
 
-            //partsAndProductService.UpdateOrInsert(new Part { Name = "Frame" }, frameStore.Reference);
+            partsService.UpdateOrInsert(new Part { Name = "Frame" }, frameStore.Reference);
 
-            //partsAndProductService.UpdateOrInsert(new Product { Name = "Trike", Weight = 2 }, mainStore.Reference);
+            productService.UpdateOrInsert(new Product { Name = "Trike", Weight = 2 }, mainStore.Reference);
+
+
+            var customerNode = repoCreator.CreateNode<IsCustomerRelationship, Customer>("Name");
+
+            customerNode.UpdateOrInsert(new Customer {Name = "Fred", DOB = new DateTime (1, 1, 1970)});
+
+            var customerPurchaseService = repoCreator.CreateRelated<Customer, Product, CustomerPurchaseProduct>(customerNode, productService);
+
+            customerPurchaseService.AddRelatedRelationship("Fred", "Trike", new CustomerPurchaseProduct.PayLoad { Purchased = DateTime.UtcNow});
+
+
 
 
         }

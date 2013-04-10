@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,11 +30,12 @@ namespace Neo4jClientRepository.IdGen
 
         public IdGenerator(INodeRepoCreator repoCreator)
         {
+            if (repoCreator == null) {throw new ArgumentNullException("repoCreator");}
+            
             _repoCreator = repoCreator;
-
-            //TODO - is this fine?
+            
             repoCreator.IDGenerator = this;
-
+            
             _isLoaded = false;
         }
 

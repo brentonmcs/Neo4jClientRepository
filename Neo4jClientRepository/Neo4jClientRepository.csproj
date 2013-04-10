@@ -77,6 +77,7 @@
     <Compile Include="INeo4NodeRepository.cs" />
     <Compile Include="IDBSearchable.cs" />
     <Compile Include="INodeCreator.cs" />
+    <Compile Include="INodeRepoCreator.cs" />
     <Compile Include="IPayload.cs" />
     <Compile Include="Neo4NodeRepository.cs" />
     <Compile Include="RelationshipManager\INeo4jRelationshipManager.cs" />
