@@ -143,6 +143,29 @@ namespace Neo4jClientRepository
 
         private NodeReference GetNode( object identifier, bool searchSource)
         {
+            
+            var defaultIdentifiers = SetDefaultIdentiferValues(identifier);
+
+            if (searchSource)
+            {
+                if (!string.IsNullOrEmpty(defaultIdentifiers.Item1))
+                    return _sourceDataSource.GetNodeByItemCode(defaultIdentifiers.Item1).Reference;
+                if (defaultIdentifiers.Item2 >= 0)
+                    return _sourceDataSource.GetNodeReferenceById(defaultIdentifiers.Item2).Reference;
+                throw new InvalidSourceNodeException();
+            }
+
+            if (!string.IsNullOrEmpty(defaultIdentifiers.Item1))
+                return _targetDataSource.GetNodeByItemCode(defaultIdentifiers.Item1).Reference;
+            if (defaultIdentifiers.Item2 > 0)
+                return _targetDataSource.GetNodeReferenceById(defaultIdentifiers.Item2).Reference;
+
+            throw new InvalidSourceNodeException();
+
+        }
+
+        private static Tuple<string, long> SetDefaultIdentiferValues(object identifier)
+        {
             var identifierStr = string.Empty;
             if (identifier is string)
                 identifierStr = identifier.ToString();
@@ -150,23 +173,7 @@ namespace Neo4jClientRepository
             var idenitiferLong = -1000L;
             if (identifier is long)
                 idenitiferLong = long.Parse(identifier.ToString());
-
-            if (searchSource)
-            {
-                if (!string.IsNullOrEmpty( identifierStr))
-                    return _sourceDataSource.GetNodeByItemCode(identifierStr).Reference;
-                if (idenitiferLong >= 0)
-                    return _sourceDataSource.GetNodeReferenceById(idenitiferLong).Reference;
-                throw new InvalidSourceNodeException();
-            }
-
-            if (!string.IsNullOrEmpty(identifierStr))
-                return _targetDataSource.GetNodeByItemCode(identifierStr).Reference;
-            if (idenitiferLong > 0)
-                return _targetDataSource.GetNodeReferenceById(idenitiferLong).Reference;
-
-            throw new InvalidSourceNodeException();
-
+            return new Tuple<string,long>(identifierStr, idenitiferLong);
         }
 
 
@@ -262,12 +269,12 @@ namespace Neo4jClientRepository
                 result = result.AndWhere(payloadStr);
             }
 
-            return GetMultipleCount(result);           
+            return GetMultipleCount(result);
         }
 
-        private static bool GetMultipleCount(ICypherFluentQuery result)
+        private static bool GetMultipleCount(ICypherFluentQuery query)
         {
-            return result.Return<int>("count(*)").Results.SingleOrDefault() > 0;
+            return ((CypherFluentQuery) query).Return(() => All.Count()).Results.SingleOrDefault() != 0;            
         }
 
         private ICypherFluentQuery GetMultipesQuery(NodeReference node, TTargetNode target, Type payloadType = null )
