@@ -10,6 +10,7 @@ using System;
 namespace Neo4jClientRepository.Tests
 {
     [TestFixture]
+    [Category("Integration")]
     class RelationshipManagerIntegrationTests
     {
         GraphClient _graphClient;

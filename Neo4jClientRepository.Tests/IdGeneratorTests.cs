@@ -7,6 +7,7 @@ using Neo4jClientRepository.IdGen;
 namespace Neo4jClientRepository.Tests
 {
     [TestFixture]
+    [Category("Fast")]
     public class IdGeneratorTests
     {
         private IIdGenerator _idGenerator;

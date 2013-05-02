@@ -9,6 +9,7 @@ using Neo4jClientRepository.Tests.Domain;
 namespace Neo4jClientRepository.Tests
 {
     [TestFixture]    
+    [Category("Fast")]
     public class RelationshipManagerTests
     {
         readonly INeo4jRelationshipManager _relationshipManager = new Neo4jRelationshipManager();
