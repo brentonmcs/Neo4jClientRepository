@@ -21,7 +21,7 @@
     </metadata>
     <files>        
 	
-		<file src="bin\Release\Neo4jClientRepository.dll" target="lib\net45" />
-        <file src="bin\Release\Neo4jClientRepository.pdb" target="lib\net45" />		       
+		<file src="Neo4jClientRepository\bin\Release\Neo4jClientRepository.dll" target="lib\net45" />
+        <file src="Neo4jClientRepository\bin\Release\Neo4jClientRepository.pdb" target="lib\net45" />		       
     </files>
 </package>
