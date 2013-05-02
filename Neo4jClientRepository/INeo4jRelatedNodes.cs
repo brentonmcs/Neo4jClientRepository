@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Neo4jClient;
 
@@ -15,7 +14,7 @@ namespace Neo4jClientRepository
         void AddRelatedRelationship<TData>(Node<TNode> source, Node<TTargetNode> target, TData properties) where TData : class, IPayload, new();         
         void AddRelatedRelationship<TData>(string source, string target, TData properties) where TData : class, IPayload, new();
 
-        string GetRootTypeKey(Type payload = null);
+        string GetRootTypeKey();
 
         IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(string relatedCode, bool searchSource) where TSourceNode : class, IDBSearchable, new();
         IEnumerable<Node<TSourceNode>> GetCachedRelated<TSourceNode>(long id, bool searchSource) where TSourceNode : class, IDBSearchable, new();

@@ -23,6 +23,8 @@ namespace Neo4jClientRepository
         private readonly INeo4NodeRepository<TTargetNode> _targetDataSource;
         private readonly ICachingService _cachingService;
 
+        private readonly Type _payload;
+
         public Neo4jRelatedNodes(IGraphClient graphClient, INeo4jRelationshipManager relationshipManager,
                                  INeo4NodeRepository<TNode> sourceDataSource, INeo4NodeRepository<TTargetNode> targetDataSource,
                                  ICachingService cachingService)
@@ -33,8 +35,11 @@ namespace Neo4jClientRepository
             _targetDataSource = targetDataSource;
             _cachingService = cachingService;
             AllowMultipleRelationships = false;
+
+            _payload = _relationshipManager.GetPayloadType(typeof(TRelationship));
         }
 
+        
         public void AddRelatedRelationship(string sourceCode, string targetCode)
         {
             AddRelatedRelationship(_sourceDataSource.GetNodeByItemCode(sourceCode), _targetDataSource.GetNodeByItemCode(targetCode));
@@ -50,15 +55,28 @@ namespace Neo4jClientRepository
 
         public void AddRelatedRelationship<TData>(long sourceId, long targetId, TData properties) where TData : class, IPayload, new()
         {
+            CheckPayload(properties);
+                
             var sourceNode = _sourceDataSource.GetNodeReferenceById(sourceId);
             var targetNode = _targetDataSource.GetNodeReferenceById(targetId);
             AddRelatedRelationship(sourceNode, targetNode, properties);
         }
 
+        private void CheckPayload<TData>(TData properties) where TData : class, new()
+        {
+            if (_payload != null && properties == null) 
+                throw new PayloadMissingException();
+        }
+
+        private void CheckPayload()
+        {
+            if (_payload != null) throw new PayloadMissingException();
+        }
         public void AddRelatedRelationship(Node<TNode> source, Node<TTargetNode> target)
         {
             if (source == null) throw new ArgumentNullException("source");
             if (target == null) throw new ArgumentNullException("target");
+            CheckPayload();
 
             if (MultiplesCheck(source, target)) return;
 
@@ -68,15 +86,14 @@ namespace Neo4jClientRepository
             if (_cachingService != null)
                 _cachingService.DeleteCache(GetCacheKey(_sourceDataSource));
         }
-
-
-       
         
         public void AddRelatedRelationship<TData>(Node<TNode> source, Node<TTargetNode> target, TData properties) 
                         where TData : class,IPayload, new()
         {
             if (source == null) throw new ArgumentNullException("source");
             if (target == null) throw new ArgumentNullException("target");
+            CheckPayload(properties);
+
             if (MultiplesCheck(source, target, properties)) return;
 
             _graphClient.CreateRelationship(source.Reference, GetRelatedRelationship(target, properties));
@@ -235,13 +252,13 @@ namespace Neo4jClientRepository
 
         private TRelationship GetRelatedRelationship<TData>(Node<TTargetNode> target, TData properties) where TData : class,new()
         {
+            CheckPayload(properties);
             return _relationshipManager.GetRelationshipObject<TRelationship, TData>(typeof(TNode), typeof(TTargetNode), target.Reference, properties, typeof(TData));
         }
 
-        public string GetRootTypeKey(Type payload = null ) //TODO: should be able to know if the relationship has a payload!
-        {
-
-            return _relationshipManager.GetTypeKey(typeof(TNode), typeof(TTargetNode), payload);
+        public string GetRootTypeKey()
+        {            
+            return _relationshipManager.GetTypeKey(typeof(TNode), typeof(TTargetNode), _payload);
         }
 
         private  string GetSourceRootKey()
@@ -274,7 +291,7 @@ namespace Neo4jClientRepository
 
         private static bool GetMultipleCount(ICypherFluentQuery query)
         {
-            return ((CypherFluentQuery) query).Return(() => All.Count()).Results.SingleOrDefault() != 0;            
+            return  query.Return(() => All.Count()).Results.SingleOrDefault() != 0;            
         }
 
         private ICypherFluentQuery GetMultipesQuery(NodeReference node, TTargetNode target, Type payloadType = null )

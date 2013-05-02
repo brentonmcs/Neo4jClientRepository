@@ -7,9 +7,7 @@ using System.Reflection;
 namespace Neo4jClientRepository.RelationshipManager
 
 {
-    
-    public class Neo4jRelationshipManager : INeo4jRelationshipManager
-    
+    public class Neo4jRelationshipManager : INeo4jRelationshipManager   
     {
         private Dictionary<RelationshipContainer, Type> _relationships;
 
@@ -156,24 +154,6 @@ namespace Neo4jClientRepository.RelationshipManager
                 returnList.Add( GetGenericType(i));            
         }
 
-        private class RelationshipContainer
-        {
-            public RelationshipContainer(List<Type> target, List<Type> source, Type payload)
-            {
-                Payload = payload;
-                Source = source;
-                Target = target;
-            }
-
-            public Type Payload { get; private set; }
-
-            public List<Type> Source { get; private set; }
-
-            public List<Type> Target { get; private set; }
-        }
-
-
-        
         public string[] GetMatchStringToRootForSource<TRelationship>(TRelationship relationship) where TRelationship : Type
         {
             var result = new List<string>();
@@ -195,6 +175,11 @@ namespace Neo4jClientRepository.RelationshipManager
             
             result.Add(count == 0 ? string.Format("node-[:{0}]-root", currentTypeKey) : string.Format("target{1}-[:{0}]-root", currentTypeKey, count - 1));
             return result.ToArray();
+        }
+
+        public Type GetPayloadType(Type type)
+        {
+            return _relationships.Single(x => x.Value == type).Key.Payload;
         }
 
         private Type UpdateCurrentValues(Type currentRelationshipType, ref Type currentSource,ref string currentTypeKey)

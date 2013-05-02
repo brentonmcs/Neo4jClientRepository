@@ -45,9 +45,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\CacheController2.2.3\lib\net45\CacheController.dll</HintPath>
     </Reference>
-    <Reference Include="Neo4jClient, Version=1.0.0.550, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Neo4jClient, Version=1.0.0.551, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Neo4jClient.1.0.0.550\lib\net40\Neo4jClient.dll</HintPath>
+      <HintPath>..\packages\Neo4jClient.1.0.0.551\lib\net40\Neo4jClient.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -80,11 +80,13 @@
     <Compile Include="INodeRepoCreator.cs" />
     <Compile Include="IPayload.cs" />
     <Compile Include="Neo4NodeRepository.cs" />
+    <Compile Include="PayloadMissingException.cs" />
     <Compile Include="RelationshipManager\INeo4jRelationshipManager.cs" />
     <Compile Include="RelationshipManager\InvalidSourceNodeException.cs" />
     <Compile Include="Neo4jRelatedNodes.cs" />
     <Compile Include="RelationshipManager\Neo4jRelationshipManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RelationshipManager\RelationshipContainer.cs" />
     <Compile Include="RelationshipManager\RelationshipNotFoundException.cs" />
     <Compile Include="RelationshipManager\RelationshipTypeKeyNotFoundException.cs" />
   </ItemGroup>

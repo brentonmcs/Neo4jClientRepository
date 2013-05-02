@@ -68,14 +68,11 @@ namespace Neo4jClientRepository
             if (!_graphClient.CheckIndexExists(GetIndexName(indexType), IndexFor.Node))
                 return null;
 
-            var indexName = GetIndexName(indexType);
-
-            return 
+            return
                 _graphClient
                     .Cypher
-                    .Start(new {node = Node.ByIndexLookup(indexName, key, value)})
+                    .Start(new {node = Node.ByIndexLookup(GetIndexName(indexType), key, value)})
                     .Return<TResult>("node").Results.SingleOrDefault();
-                     
         }
 
         private static string GetIndexName(Type indexType)

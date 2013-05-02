@@ -28,5 +28,7 @@ namespace Neo4jClientRepository.RelationshipManager
         string GetTypeKey(Type currentRelationshipType);
 
         string[] GetMatchStringToRootForSource<TRelationship>(TRelationship relationship) where TRelationship : Type;
+
+        Type GetPayloadType(Type type);
     }
 }
