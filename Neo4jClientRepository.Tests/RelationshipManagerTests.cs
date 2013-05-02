@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Neo4jClientRepository.RelationshipManager;
 using Neo4jClientRepository.Tests.Relationships;
 using Neo4jClient;
@@ -8,12 +8,12 @@ using Neo4jClientRepository.Tests.Domain;
 
 namespace Neo4jClientRepository.Tests
 {
-    [TestClass]    
+    [TestFixture]    
     public class RelationshipManagerTests
     {
         readonly INeo4jRelationshipManager _relationshipManager = new Neo4jRelationshipManager();
 
-        [TestMethod]
+        [Test]
         public void RelationshipManagerGetTypeSet()
         {
             //Setup
@@ -27,7 +27,7 @@ namespace Neo4jClientRepository.Tests
             
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedExceptionAttribute(typeof(RelationshipNotFoundException))]
         public void RelationshipNotFound()
         {
@@ -40,7 +40,7 @@ namespace Neo4jClientRepository.Tests
                         
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedExceptionAttribute(typeof(RelationshipTypeKeyNotFoundException))]
         public void RelationshipTypeKeyFieldNotSet()
         {
@@ -54,7 +54,7 @@ namespace Neo4jClientRepository.Tests
 
         }
 
-        [TestMethod]        
+        [Test]        
         public void RelationshipGetRelationshipObject()
         {
             //Setup
@@ -69,7 +69,7 @@ namespace Neo4jClientRepository.Tests
             
         }
 
-        [TestMethod]
+        [Test]
         public void RelationshipGetRelationshipObjectParticipant()
         {
             //Setup
@@ -83,7 +83,7 @@ namespace Neo4jClientRepository.Tests
             Assert.AreEqual(result.GetType(), typeof(StoredIn));
         }
 
-        [TestMethod]
+        [Test]
         public void RelationshipGetRelationshipObjectSource()
         {
             //Setup
@@ -98,7 +98,7 @@ namespace Neo4jClientRepository.Tests
         }
 
 
-        [TestMethod]
+        [Test]
         public void RelationshipGetRelationshipObjectWithPayload()
         {
             //Setup
@@ -113,7 +113,7 @@ namespace Neo4jClientRepository.Tests
             Assert.AreEqual(result.GetType(), typeof(StorePurchaseProduct));
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedExceptionAttribute(typeof(RelationshipNotFoundException))]
         public void HandleMultipleSourceTypesNoPayLoadDoesntFind()
         {
@@ -123,7 +123,7 @@ namespace Neo4jClientRepository.Tests
             _relationshipManager.GetRelationshipObjectSource<StorageLocation>(source, target, 0);            
         }
 
-        [TestMethod]
+        [Test]
         
         public void HandleMultipleSourceTypes()
         {
@@ -136,21 +136,21 @@ namespace Neo4jClientRepository.Tests
 
         }
 
-        [TestMethod]
+        [Test]
         public void TestGetSourceType()
         {
             var resut = _relationshipManager.GetSourceType(typeof(StorePurchaseProduct));
             Assert.AreEqual(typeof(StorageLocation), resut);
         }
 
-        [TestMethod]
+        [Test]
         public void TestGetTargetType()
         {
             var resut = _relationshipManager.GetTargetType(typeof(StorePurchaseProduct));
             Assert.AreEqual(typeof(Product), resut);
         }
 
-        [TestMethod]
+        [Test]
         public void FindLinkedRelationshipsBasedOnSource()
         {
             var result = _relationshipManager.GetRelationship(typeof(Product));
@@ -159,7 +159,7 @@ namespace Neo4jClientRepository.Tests
         }
 
 
-        [TestMethod]
+        [Test]
         public void GetMatchWhenSourceIsRoot()
         {
 
@@ -171,7 +171,7 @@ namespace Neo4jClientRepository.Tests
             Assert.AreEqual("node-[:OWNED_BY]-root", result[0]);
         }
 
-        [TestMethod]
+        [Test]
         public void GetMatchWhenSourceIsNotRoot()
         {
             var result = _relationshipManager.GetMatchStringToRootForSource(typeof(Requires));
@@ -182,7 +182,7 @@ namespace Neo4jClientRepository.Tests
             Assert.AreEqual("target0-[:HAS_RELATED_NODE]-root", result[1]);
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(NotSupportedException))]
         public void TestForExceptionIfTargetAndSourceMatch()
         {
