@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+    <metadata>
+        <id>Neo4jRepository</id>
+        <version>0.0.0.0</version>
+        <title />
+        <authors>bmcsweyn</authors>
+        <owners />
+        <projectUrl>https://github.com/brentonmcs/Neo4jClientRepository</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Repository Abstraction for the Neo4jClient Library</description>
+        <summary>Repository Abstraction for the Neo4jClient Library</summary>
+        <releaseNotes>Fixes and Added In the Id Generator</releaseNotes>
+        <tags>Neo4jClient Neo4j Repository</tags>
+        <dependencies>
+            <group targetFramework=".NETFramework4.5">
+                <dependency id="CacheController2" version="2.2" />
+                <dependency id="Neo4jClient" version="1.0.0.547" />
+            </group>
+        </dependencies>
+    </metadata>
+    <files>        
+	
+		<file src="bin\Release\Neo4jClientRepository.dll" target="lib\net45" />
+        <file src="bin\Release\Neo4jClientRepository.pdb" target="lib\net45" />		       
+    </files>
+</package>
