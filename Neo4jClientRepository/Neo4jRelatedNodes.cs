@@ -55,19 +55,16 @@ namespace Neo4jClientRepository
 
         public void AddRelatedRelationship<TData>(long sourceId, long targetId, TData properties) where TData : class, IPayload, new()
         {
-            CheckPayload(properties);
+            
+            if (_payload != null && properties == null) 
+                throw new PayloadMissingException();
                 
             var sourceNode = _sourceDataSource.GetNodeReferenceById(sourceId);
             var targetNode = _targetDataSource.GetNodeReferenceById(targetId);
             AddRelatedRelationship(sourceNode, targetNode, properties);
         }
 
-        private void CheckPayload<TData>(TData properties) where TData : class, new()
-        {
-            if (_payload != null && properties == null) 
-                throw new PayloadMissingException();
-        }
-
+    
         private void CheckPayload()
         {
             if (_payload != null) throw new PayloadMissingException();
@@ -92,7 +89,10 @@ namespace Neo4jClientRepository
         {
             if (source == null) throw new ArgumentNullException("source");
             if (target == null) throw new ArgumentNullException("target");
-            CheckPayload(properties);
+            
+            
+            if (_payload != null && properties == null) 
+                throw new PayloadMissingException();
 
             if (MultiplesCheck(source, target, properties)) return;
 
@@ -155,6 +155,23 @@ namespace Neo4jClientRepository
                         .StartCypher("startNodes")
                         .Match(matchQuery)
                         .Where<TSourceNode, TSourceNode>((startNodes, otherStartNodes) => startNodes.Id != otherStartNodes.Id)                                    
+                        .Return<TSourceNode>("otherStartNodes").Results;
+        }
+
+        //This will find Friends Of Friends, What other products users purchased 
+        public IEnumerable<TSourceNode> FindOtherRelated<TSourceNode>(Node<TSourceNode> startingNode) where TSourceNode : IDBSearchable
+        {
+            var typeKey = GetRootTypeKey();
+            var matchQuery = string.Format("startNodes-[:{0}]-othernode-[:{0}]-otherStartNodes", typeKey);
+
+            if (startingNode == null)
+                throw new ArgumentNullException("startingNode");
+
+            return
+                    startingNode
+                        .StartCypher("startNodes")
+                        .Match(matchQuery)
+                        .Where<TSourceNode, TSourceNode>((startNodes, otherStartNodes) => startNodes.Id != otherStartNodes.Id)
                         .Return<TSourceNode>("otherStartNodes").Results;
         }
 
@@ -252,7 +269,9 @@ namespace Neo4jClientRepository
 
         private TRelationship GetRelatedRelationship<TData>(Node<TTargetNode> target, TData properties) where TData : class,new()
         {
-            CheckPayload(properties);
+            
+            if (_payload != null && properties == null) 
+                throw new PayloadMissingException();
             return _relationshipManager.GetRelationshipObject<TRelationship, TData>(typeof(TNode), typeof(TTargetNode), target.Reference, properties, typeof(TData));
         }
 

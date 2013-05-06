@@ -32,5 +32,7 @@ namespace Neo4jClientRepository
         IEnumerable<TSourceNode> GetAllCachedRelated<TSourceNode>();
 
         IEnumerable<TSourceNode> FindOtherRelated<TSourceNode>(Node<TSourceNode> startingNode, string typeKey) where TSourceNode : IDBSearchable;
+        IEnumerable<TSourceNode> FindOtherRelated<TSourceNode>(Node<TSourceNode> startingNode) where TSourceNode : IDBSearchable;
+ 
     }
 }
