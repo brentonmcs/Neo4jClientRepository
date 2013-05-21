@@ -39,22 +39,22 @@
   <ItemGroup>
     <Reference Include="CacheController, Version=2.3.0.2, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\CacheController2.2.3.49\lib\net40\CacheController.dll</HintPath>
+      <HintPath>..\packages\CacheController2.2.3.50\lib\net40\CacheController.dll</HintPath>
     </Reference>
-    <Reference Include="FakeItEasy, Version=1.10.0.0, Culture=neutral, PublicKeyToken=eff28e2146d5fd2c, processorArchitecture=MSIL">
+    <Reference Include="FakeItEasy, Version=1.11.0.0, Culture=neutral, PublicKeyToken=eff28e2146d5fd2c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\FakeItEasy.1.10.0\lib\net40\FakeItEasy.dll</HintPath>
+      <HintPath>..\packages\FakeItEasy.1.11.0\lib\net40\FakeItEasy.dll</HintPath>
     </Reference>
-    <Reference Include="Neo4jClient, Version=1.0.0.566, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Neo4jClient, Version=1.0.0.572, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Neo4jClient.1.0.0.566\lib\net40\Neo4jClient.dll</HintPath>
+      <HintPath>..\packages\Neo4jClient.1.0.0.572\lib\net40\Neo4jClient.dll</HintPath>
     </Reference>
     <Reference Include="Neo4jClient.1.0.0.500.Fakes">
       <HintPath>FakesAssemblies\Neo4jClient.1.0.0.500.Fakes.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.5.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.5.0.5\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
